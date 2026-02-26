@@ -101,11 +101,19 @@ bash scripts/run_ade20k_rwtd.sh \
 Migration + handoff docs:
 - `SERVER_MIGRATION.md`
 - `CODEX_SERVER_HANDOFF.md`
+- `SERVER_NON_ADE20K_SCOPE.md` (next-dataset scope, time estimates, server-only download plan)
 
 Resume context quickly (useful after moving to another machine):
 
 ```bash
 bash scripts/codex_resume.sh
+```
+
+Plan/download the non-ADE20K dataset scope on server:
+
+```bash
+bash scripts/prepare_non_ade20k_server.sh --root /data/rwtd_datasets --mode plan
+bash scripts/prepare_non_ade20k_server.sh --root /data/rwtd_datasets --mode download_public
 ```
 
 ## CLI
