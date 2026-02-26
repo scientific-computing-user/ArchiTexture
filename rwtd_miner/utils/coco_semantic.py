@@ -28,6 +28,16 @@ PVA_DEFAULT_NAMES = {
     "giraffe",
 }
 
+BUILT_STRUCTURE_DEFAULT_NAMES = {
+    "building-other-merged",
+    "roof",
+    "wall-other-merged",
+    "wall-brick",
+    "wall-concrete",
+    "bridge",
+    "tent",
+}
+
 
 def _as_image_id_keys(value: Any) -> list[str]:
     s = str(value).strip()
@@ -121,6 +131,8 @@ def enrich_with_coco_panoptic_metrics(df: pd.DataFrame, cfg: dict[str, Any]) -> 
     out["largest_thing_fraction"] = pd.NA
     out["num_large_thing_instances"] = pd.NA
     out["person_vehicle_animal_fraction"] = pd.NA
+    out["sky_fraction"] = pd.NA
+    out["built_structure_fraction"] = pd.NA
     out["semantic_metrics_status"] = "disabled"
 
     if not bool(cfg.get("enabled", False)):
@@ -139,12 +151,15 @@ def enrich_with_coco_panoptic_metrics(df: pd.DataFrame, cfg: dict[str, Any]) -> 
 
     large_inst_min = float(cfg.get("large_thing_instance_min_fraction", 0.005))
     pva_names = {str(x).strip().lower() for x in cfg.get("person_vehicle_animal_names", sorted(PVA_DEFAULT_NAMES))}
+    built_names = {str(x).strip().lower() for x in cfg.get("built_structure_names", sorted(BUILT_STRUCTURE_DEFAULT_NAMES))}
 
     statuses: list[str] = []
     tf_col: list[float | None] = []
     ltf_col: list[float | None] = []
     nlarge_col: list[int | None] = []
     pva_col: list[float | None] = []
+    sky_col: list[float | None] = []
+    built_col: list[float | None] = []
 
     for _, row in out.iterrows():
         keys = _as_image_id_keys(row.get("image_id"))
@@ -165,6 +180,8 @@ def enrich_with_coco_panoptic_metrics(df: pd.DataFrame, cfg: dict[str, Any]) -> 
             ltf_col.append(None)
             nlarge_col.append(None)
             pva_col.append(None)
+            sky_col.append(None)
+            built_col.append(None)
             continue
 
         segments = ann.get("segments_info", [])
@@ -174,6 +191,8 @@ def enrich_with_coco_panoptic_metrics(df: pd.DataFrame, cfg: dict[str, Any]) -> 
             ltf_col.append(0.0)
             nlarge_col.append(0)
             pva_col.append(0.0)
+            sky_col.append(0.0)
+            built_col.append(0.0)
             continue
 
         total_area = float(sum(float(s.get("area", 0.0)) for s in segments if isinstance(s, dict)))
@@ -183,10 +202,14 @@ def enrich_with_coco_panoptic_metrics(df: pd.DataFrame, cfg: dict[str, Any]) -> 
             ltf_col.append(0.0)
             nlarge_col.append(0)
             pva_col.append(0.0)
+            sky_col.append(0.0)
+            built_col.append(0.0)
             continue
 
         thing_areas: list[float] = []
         pva_area = 0.0
+        sky_area = 0.0
+        built_area = 0.0
         for seg in segments:
             if not isinstance(seg, dict):
                 continue
@@ -197,11 +220,15 @@ def enrich_with_coco_panoptic_metrics(df: pd.DataFrame, cfg: dict[str, Any]) -> 
             if cat_id is None:
                 continue
             cat = cat_by_id.get(int(cat_id), {})
+            cat_name = str(cat.get("name", "")).strip().lower()
+            if "sky" in cat_name:
+                sky_area += area
+            if cat_name in built_names or "building" in cat_name:
+                built_area += area
             isthing = int(cat.get("isthing", 0)) == 1
             if not isthing:
                 continue
             thing_areas.append(area)
-            cat_name = str(cat.get("name", "")).strip().lower()
             if cat_name in pva_names:
                 pva_area += area
 
@@ -211,22 +238,30 @@ def enrich_with_coco_panoptic_metrics(df: pd.DataFrame, cfg: dict[str, Any]) -> 
             ltf_col.append(0.0)
             nlarge_col.append(0)
             pva_col.append(0.0)
+            sky_col.append(float(sky_area / total_area))
+            built_col.append(float(built_area / total_area))
             continue
 
         thing_fraction = float(sum(thing_areas) / total_area)
         largest_thing_fraction = float(max(thing_areas) / total_area)
         num_large = int(sum(1 for a in thing_areas if (a / total_area) > large_inst_min))
         pva_fraction = float(pva_area / total_area)
+        sky_fraction = float(sky_area / total_area)
+        built_fraction = float(built_area / total_area)
 
         statuses.append("ok")
         tf_col.append(thing_fraction)
         ltf_col.append(largest_thing_fraction)
         nlarge_col.append(num_large)
         pva_col.append(pva_fraction)
+        sky_col.append(sky_fraction)
+        built_col.append(built_fraction)
 
     out["thing_fraction"] = tf_col
     out["largest_thing_fraction"] = ltf_col
     out["num_large_thing_instances"] = nlarge_col
     out["person_vehicle_animal_fraction"] = pva_col
+    out["sky_fraction"] = sky_col
+    out["built_structure_fraction"] = built_col
     out["semantic_metrics_status"] = statuses
     return out

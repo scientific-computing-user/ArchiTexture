@@ -69,6 +69,8 @@ selection:
     soft_penalty_pva_weight: 34.0
     soft_penalty_geom_object_weight: 14.0
     soft_penalty_large_instances_weight: 2.5
+    soft_penalty_sky_fraction_weight: 45.0
+    soft_penalty_built_structure_weight: 22.0
     texture_override_enabled: true
     texture_override_min_geom_score: 88
     texture_override_max_thing_fraction: 0.03

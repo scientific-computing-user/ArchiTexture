@@ -259,6 +259,8 @@ def _apply_generalized_selection_model(df: pd.DataFrame, cfg: dict[str, Any], st
     pva = pd.to_numeric(out.get("person_vehicle_animal_fraction", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
     nlarge = pd.to_numeric(out.get("num_large_thing_instances", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
     geom_obj = pd.to_numeric(out.get("geom_object_fraction", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
+    sky_frac = pd.to_numeric(out.get("sky_fraction", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
+    built_frac = pd.to_numeric(out.get("built_structure_fraction", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
 
     soft_penalty = (
         float(model_cfg.get("soft_penalty_thing_fraction_weight", 28.0)) * tf
@@ -266,6 +268,8 @@ def _apply_generalized_selection_model(df: pd.DataFrame, cfg: dict[str, Any], st
         + float(model_cfg.get("soft_penalty_pva_weight", 42.0)) * pva
         + float(model_cfg.get("soft_penalty_geom_object_weight", 16.0)) * geom_obj
         + float(model_cfg.get("soft_penalty_large_instances_weight", 3.0)) * np.clip(nlarge - 1.0, 0.0, None)
+        + float(model_cfg.get("soft_penalty_sky_fraction_weight", 0.0)) * sky_frac
+        + float(model_cfg.get("soft_penalty_built_structure_weight", 0.0)) * built_frac
     )
 
     flags = out.get("stageD_flags", pd.Series([""] * n, index=idx)).fillna("").astype(str)
@@ -277,6 +281,10 @@ def _apply_generalized_selection_model(df: pd.DataFrame, cfg: dict[str, Any], st
         hard = hard | (ltf > float(model_cfg.get("hard_veto_largest_thing_fraction_max", 0.15)))
         hard = hard | (nlarge > float(model_cfg.get("hard_veto_num_large_instances_max", 3)))
         hard = hard | (pva > float(model_cfg.get("hard_veto_pva_fraction_max", 0.08)))
+        if model_cfg.get("hard_veto_sky_fraction_max", None) not in (None, ""):
+            hard = hard | (sky_frac > float(model_cfg.get("hard_veto_sky_fraction_max")))
+        if model_cfg.get("hard_veto_built_structure_fraction_max", None) not in (None, ""):
+            hard = hard | (built_frac > float(model_cfg.get("hard_veto_built_structure_fraction_max")))
         if bool(model_cfg.get("hard_veto_object_centric_flag", True)):
             hard = hard | flags.str.contains("object_centric", na=False)
 
