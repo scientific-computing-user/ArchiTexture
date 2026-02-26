@@ -24,14 +24,16 @@ This repo includes:
   - texture-boundary overlay
   - selection rationale and stage metrics
 
-## Hosted Review (GitHub Pages)
+## Hosted Review (Public Site)
 
-After pushing this repository, enable Pages from GitHub Actions.
+This code repository stays private.
+The public static review website is published separately at:
 
-- Expected URL pattern:
-  - `https://<your-username>.github.io/<repo-name>/review/`
-- Local preview:
-  - Open `docs/review/index.html` directly.
+- `https://scientific-computing-user.github.io/rwtd-texture-miner-site/review/`
+- Public site repo: `https://github.com/scientific-computing-user/rwtd-texture-miner-site`
+
+Local preview:
+- Open `docs/review/index.html` directly.
 
 The bundled site in `docs/review` is fully static (no backend) and includes:
 - thumbnails
