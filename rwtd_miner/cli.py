@@ -30,6 +30,7 @@ from rwtd_miner.utils.rwtd_reference import (
     score_rwtd_reference_dataset,
 )
 from rwtd_miner.utils.sa1b_geometry import enrich_with_sa1b_geometry_and_assets
+from rwtd_miner.utils.coco_semantic import enrich_with_coco_panoptic_metrics
 from rwtd_miner.utils.sa1b_sample_fetch import fetch_sa1b_pairs_from_tar
 
 
@@ -143,6 +144,75 @@ def _save_batch_manifest(df: pd.DataFrame, batch_dir: Path, write_csv: bool) -> 
     write_table(df, batch_dir / "batch_manifest", write_csv=write_csv)
 
 
+def _apply_semantic_object_gates(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
+    out = df.copy()
+    gate_cfg = cfg.get("semantic_gates", {})
+    out["semantic_gate_failed"] = False
+    out["semantic_gate_reasons"] = ""
+
+    if not bool(gate_cfg.get("enabled", False)):
+        return out
+
+    dataset_mask = pd.Series(True, index=out.index)
+    target_datasets = {str(x).strip() for x in gate_cfg.get("target_datasets", []) if str(x).strip()}
+    if target_datasets and "dataset" in out.columns:
+        dataset_vals = out["dataset"].fillna("").astype(str)
+        dataset_mask = dataset_vals.isin(target_datasets)
+
+    tf = pd.to_numeric(out.get("thing_fraction", pd.Series([np.nan] * len(out))), errors="coerce")
+    ltf = pd.to_numeric(out.get("largest_thing_fraction", pd.Series([np.nan] * len(out))), errors="coerce")
+    nlarge = pd.to_numeric(out.get("num_large_thing_instances", pd.Series([np.nan] * len(out))), errors="coerce")
+    pva = pd.to_numeric(out.get("person_vehicle_animal_fraction", pd.Series([np.nan] * len(out))), errors="coerce")
+
+    fail = pd.Series(False, index=out.index)
+    reasons: list[list[str]] = [[] for _ in range(len(out))]
+
+    def mark(mask: pd.Series, reason: str) -> None:
+        nonlocal fail
+        m = mask.fillna(False)
+        if not bool(m.any()):
+            return
+        fail = fail | m
+        idxs = np.where(m.to_numpy())[0]
+        for i in idxs:
+            if reason not in reasons[i]:
+                reasons[i].append(reason)
+
+    if bool(gate_cfg.get("missing_metrics_as_fail", False)):
+        missing = dataset_mask & (tf.isna() | ltf.isna() | nlarge.isna() | pva.isna())
+        mark(missing, "missing_semantic_metrics")
+
+    if gate_cfg.get("thing_fraction_max", None) not in (None, ""):
+        thr = float(gate_cfg["thing_fraction_max"])
+        mark(dataset_mask & (tf > thr), "thing_fraction")
+
+    if gate_cfg.get("largest_thing_fraction_max", None) not in (None, ""):
+        thr = float(gate_cfg["largest_thing_fraction_max"])
+        mark(dataset_mask & (ltf > thr), "largest_thing_fraction")
+
+    if gate_cfg.get("num_large_thing_instances_max", None) not in (None, ""):
+        thr = float(gate_cfg["num_large_thing_instances_max"])
+        mark(dataset_mask & (nlarge > thr), "num_large_thing_instances")
+
+    if gate_cfg.get("person_vehicle_animal_fraction_max", None) not in (None, ""):
+        thr = float(gate_cfg["person_vehicle_animal_fraction_max"])
+        mark(dataset_mask & (pva > thr), "person_vehicle_animal_fraction")
+
+    out["semantic_gate_failed"] = fail.astype(bool)
+    out["semantic_gate_reasons"] = ["|".join(xs) if xs else "" for xs in reasons]
+    out.loc[out["semantic_gate_failed"], "final_selected"] = False
+    out.loc[out["semantic_gate_failed"], "final_borderline"] = False
+    if "selection_reason" in out.columns:
+        gate_rows = out["semantic_gate_failed"].fillna(False)
+        out.loc[gate_rows, "selection_reason"] = (
+            out.loc[gate_rows, "selection_reason"]
+            .fillna("")
+            .astype(str)
+            .map(lambda s: s if "semantic_gate" in s else (f"{s}|semantic_gate" if s else "semantic_gate"))
+        )
+    return out
+
+
 def _select_final(df: pd.DataFrame, cfg: dict[str, Any], stage_d_enabled: bool) -> pd.DataFrame:
     out = df.copy()
     sel_cfg = cfg.get("selection", {})
@@ -152,20 +222,26 @@ def _select_final(df: pd.DataFrame, cfg: dict[str, Any], stage_d_enabled: bool) 
     out["review_score"] = np.nan
     out["selection_reason"] = ""
 
-    if stage_d_enabled and out["stageD_score_0_100"].notna().any():
-        out["review_score"] = out["stageD_score_0_100"].astype(float)
+    stage_d_scores = pd.to_numeric(out.get("stageD_score_0_100", pd.Series([np.nan] * len(out))), errors="coerce")
+    if stage_d_enabled and stage_d_scores.notna().any():
+        decisions = out.get("stageD_decision", pd.Series([""] * len(out))).fillna("").astype(str)
+        out["review_score"] = stage_d_scores.astype(float)
         out["selection_reason"] = "stageD_vlm"
         min_match = int(sel_cfg.get("match_score_min", 80))
         req_decision = str(sel_cfg.get("match_decision_required", "match"))
-        out["final_selected"] = (out["stageD_score_0_100"].fillna(-1).astype(float) >= min_match) & (
-            out["stageD_decision"].fillna("") == req_decision
-        )
+        out["final_selected"] = (stage_d_scores.fillna(-1).astype(float) >= min_match) & (decisions == req_decision)
 
         if bool(sel_cfg.get("keep_borderline", True)):
             bmin = int(sel_cfg.get("borderline_score_min", 70))
-            out["final_borderline"] = (~out["final_selected"]) & (
-                out["stageD_score_0_100"].fillna(-1).astype(float) >= bmin
-            )
+            out["final_borderline"] = (~out["final_selected"]) & (stage_d_scores.fillna(-1).astype(float) >= bmin)
+    elif stage_d_enabled and (
+        bool(sel_cfg.get("require_stage_d_for_selection", True))
+        and (not bool(sel_cfg.get("allow_non_vlm_fallback_when_stage_d_missing", False)))
+    ):
+        out["review_score"] = pd.to_numeric(out.get("stageB_clip_score", pd.Series([0.0] * len(out))), errors="coerce").fillna(0.0) * 100.0
+        out["selection_reason"] = "stageD_required_no_scores"
+        out["final_selected"] = False
+        out["final_borderline"] = False
     else:
         # Fallback when Stage D is disabled: use Stage B (+ Stage C if available)
         stage_c_available = out["stageC_pass"].notna().any() if "stageC_pass" in out.columns else False
@@ -205,6 +281,8 @@ def _select_final(df: pd.DataFrame, cfg: dict[str, Any], stage_d_enabled: bool) 
             out["review_score"] = 0.0
             out["selection_reason"] = "no_signal"
             out["final_selected"] = False
+
+    out = _apply_semantic_object_gates(out, cfg)
 
     cap = sel_cfg.get("top_n_cap")
     if cap not in (None, "", 0):
@@ -478,6 +556,7 @@ def _run_one_batch(batch_id: int, batch_df: pd.DataFrame, out_root: Path, cfg: d
     stage_c_cfg = cfg.get("stage_c", {})
     stage_d_cfg = cfg.get("stage_d", {})
     review_cfg = cfg.get("review", {})
+    semantic_cfg = cfg.get("semantic_gates", {})
 
     if stage_a_cfg.get("enabled", True) and not cp.is_stage_done("stage_a"):
         workers = int(runtime_cfg.get("cpu_workers", 8))
@@ -499,6 +578,13 @@ def _run_one_batch(batch_id: int, batch_df: pd.DataFrame, out_root: Path, cfg: d
         _save_batch_manifest(df, batch_dir, write_csv=write_csv)
         cp.mark_stage_done("stage_geom")
     elif cp.is_stage_done("stage_geom"):
+        df = read_table(manifest_base)
+
+    if bool(semantic_cfg.get("enabled", False)) and not cp.is_stage_done("stage_semantic"):
+        df = enrich_with_coco_panoptic_metrics(df=df, cfg=semantic_cfg)
+        _save_batch_manifest(df, batch_dir, write_csv=write_csv)
+        cp.mark_stage_done("stage_semantic")
+    elif cp.is_stage_done("stage_semantic"):
         df = read_table(manifest_base)
 
     min_short_side = int(cfg.get("index", {}).get("min_short_side", 256))

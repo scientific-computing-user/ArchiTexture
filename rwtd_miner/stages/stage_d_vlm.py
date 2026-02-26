@@ -182,6 +182,22 @@ def _normalize_vlm_score(parsed: dict[str, Any]) -> VLMScore:
     )
 
 
+def _apply_hard_decision_rules(result: VLMScore, cfg: dict[str, Any]) -> VLMScore:
+    force_obj_not_match = bool(cfg.get("force_not_match_on_object_centric", False))
+    if force_obj_not_match and ("object_centric" in (result.flags or [])):
+        score = result.score_0_100
+        cap = int(cfg.get("object_centric_score_cap", 59))
+        if score is not None:
+            score = min(int(score), cap)
+        return VLMScore(
+            score_0_100=score,
+            decision="not_match",
+            main_reason=result.main_reason,
+            flags=result.flags,
+        )
+    return result
+
+
 def _extract_generated_text_from_pipeline_output(raw_output: Any) -> str:
     if isinstance(raw_output, str):
         return raw_output
@@ -450,6 +466,7 @@ def run_stage_d(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
         image_path = Path(str(row["image_path"]))
         try:
             result = scorer.score_image_vlm(image_path=image_path)
+            result = _apply_hard_decision_rules(result=result, cfg=cfg)
             out.at[idx, "stageD_score_0_100"] = result.score_0_100
             out.at[idx, "stageD_decision"] = result.decision
             out.at[idx, "stageD_flags"] = "|".join(result.flags)

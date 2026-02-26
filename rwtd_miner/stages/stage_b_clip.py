@@ -162,7 +162,11 @@ def run_stage_b(
     # Use position-based indexing internally to avoid failures with non-consecutive DataFrame indices.
     out = df.reset_index(drop=True).copy()
 
-    candidate_mask = out["stageA_pass"].fillna(False).astype(bool)
+    require_stage_a_pass = bool(cfg.get("require_stage_a_pass", True))
+    if require_stage_a_pass:
+        candidate_mask = out.get("stageA_pass", pd.Series(False, index=out.index)).fillna(False).astype(bool)
+    else:
+        candidate_mask = pd.Series(True, index=out.index)
     short_side = np.minimum(out["width"].fillna(0).astype(int), out["height"].fillna(0).astype(int))
     candidate_mask &= short_side >= int(min_short_side)
 
