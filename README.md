@@ -57,10 +57,55 @@ The adapter supports:
 ## Install
 
 ```bash
-cd /Users/galoren/TextureData/rwtd_miner
+cd /Users/galoren/TextureData/rwtd_miner_github_repo
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+## Profile-Based Runs (Recommended)
+
+Create merged runtime config from base + profile:
+
+```bash
+python scripts/merge_config.py \
+  --base config.yaml \
+  --profile configs/profiles/imac_cpu.yaml \
+  --out .tmp/config_imac_cpu.yaml
+```
+
+Server-ready bootstrap:
+
+```bash
+bash scripts/bootstrap_env.sh --profile server_rtx3090_fast
+```
+
+One-command bootstrap + run:
+
+```bash
+bash scripts/bootstrap_and_run.sh \
+  --profile server_rtx3090_fast \
+  --out /path/to/ade20k_eval \
+  --skip_download
+```
+
+Run ADE20K with CLIP + VLM using a profile:
+
+```bash
+bash scripts/run_ade20k_rwtd.sh \
+  --profile server_rtx3090_fast \
+  --out /path/to/ade20k_eval \
+  --skip_download
+```
+
+Migration + handoff docs:
+- `SERVER_MIGRATION.md`
+- `CODEX_SERVER_HANDOFF.md`
+
+Resume context quickly (useful after moving to another machine):
+
+```bash
+bash scripts/codex_resume.sh
 ```
 
 ## CLI
@@ -136,6 +181,20 @@ python -m rwtd_miner.cli ade20k_full \
   --sync_html_to /Users/galoren/TextureData/outputs/html_review
 ```
 
+Run ADE20K with CLIP + VLM (local BLIP VQA backend):
+
+```bash
+python -m rwtd_miner.cli ade20k_full \
+  --out /path/to/ade20k_eval_multimodal \
+  --skip_download \
+  --enable_clip \
+  --enable_vlm \
+  --vlm_backend hf_blip_vqa \
+  --vlm_top_n 700 \
+  --selected_min 60 \
+  --borderline_min 50
+```
+
 Run ADE20K with CLIP + VLM (external command backend):
 
 ```bash
@@ -190,7 +249,7 @@ This repo ships `.github/workflows/pages.yml`:
 ## Notes
 
 - CPU-only is default. If CUDA/MPS is available and enabled in config, Stage B/C can use it.
-- Stage D is pluggable. Stub backend is default. External backend can be provided via shell command.
+- Stage D is pluggable. Supported backends: `stub`, `hf_blip_vqa`, `hf_vlm_chat`, `external_command`.
 - Missing/invalid annotations are handled gracefully (`stageA_status=unknown`) with optional CLIP fallback.
 
 ## Free Remote VLM (low local compute)

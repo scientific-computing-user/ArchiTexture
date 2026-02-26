@@ -15,6 +15,17 @@ from tqdm import tqdm
 
 from rwtd_miner.utils.logging import get_logger
 
+ALLOWED_DECISIONS = {"match", "borderline", "not_match"}
+ALLOWED_FLAGS = {
+    "mosaic_or_collage",
+    "synthetic_or_graphic",
+    "object_centric",
+    "too_many_objects",
+    "no_clear_texture_boundary",
+    "low_texture_content",
+    "text_overlay_or_ui",
+}
+
 
 @dataclass
 class VLMScore:
@@ -56,13 +67,7 @@ class ExternalCommandVLMScorer(BaseVLMScorer):
         if not raw:
             raise RuntimeError("External VLM command returned empty output")
         parsed = json.loads(raw)
-
-        return VLMScore(
-            score_0_100=int(parsed.get("score_0_100")) if parsed.get("score_0_100") is not None else None,
-            decision=str(parsed.get("decision")) if parsed.get("decision") is not None else None,
-            main_reason=str(parsed.get("main_reason")) if parsed.get("main_reason") is not None else None,
-            flags=[str(x) for x in parsed.get("flags", [])] if isinstance(parsed.get("flags", []), list) else [],
-        )
+        return _normalize_vlm_score(parsed)
 
 
 def _resolve_device(pref: str) -> str:
@@ -116,6 +121,184 @@ def _parse_region_count(text: str) -> int | None:
         if w in t:
             return v
     return None
+
+
+def _extract_first_json_object(text: str) -> dict[str, Any]:
+    s = (text or "").strip()
+    if not s:
+        raise ValueError("Empty VLM response")
+    try:
+        obj = json.loads(s)
+        if isinstance(obj, dict):
+            return obj
+    except Exception:
+        pass
+    m = re.search(r"\{[\s\S]*\}", s)
+    if not m:
+        raise ValueError("No JSON object found in VLM response")
+    obj = json.loads(m.group(0))
+    if not isinstance(obj, dict):
+        raise ValueError("Parsed VLM response is not a JSON object")
+    return obj
+
+
+def _normalize_vlm_score(parsed: dict[str, Any]) -> VLMScore:
+    score_raw = parsed.get("score_0_100")
+    try:
+        score = int(round(float(score_raw)))
+    except Exception:
+        score = None
+    if score is not None:
+        score = max(0, min(100, score))
+
+    decision = str(parsed.get("decision") or "").strip().lower() if parsed.get("decision") is not None else None
+    if decision and decision not in ALLOWED_DECISIONS:
+        decision = None
+    if decision is None and score is not None:
+        if score >= 80:
+            decision = "match"
+        elif score >= 60:
+            decision = "borderline"
+        else:
+            decision = "not_match"
+
+    reason = str(parsed.get("main_reason") or "").strip() if parsed.get("main_reason") is not None else None
+    if not reason:
+        reason = None
+
+    flags: list[str] = []
+    flags_raw = parsed.get("flags")
+    if isinstance(flags_raw, list):
+        for f in flags_raw:
+            fs = str(f).strip()
+            if fs in ALLOWED_FLAGS and fs not in flags:
+                flags.append(fs)
+
+    return VLMScore(
+        score_0_100=score,
+        decision=decision,
+        main_reason=reason,
+        flags=flags,
+    )
+
+
+def _extract_generated_text_from_pipeline_output(raw_output: Any) -> str:
+    if isinstance(raw_output, str):
+        return raw_output
+
+    if isinstance(raw_output, dict):
+        for key in ("generated_text", "text", "output_text"):
+            value = raw_output.get(key)
+            if isinstance(value, str) and value.strip():
+                return value
+            if isinstance(value, list) and value:
+                for item in reversed(value):
+                    if isinstance(item, dict):
+                        content = item.get("content")
+                        if isinstance(content, str) and content.strip():
+                            return content
+                    elif isinstance(item, str) and item.strip():
+                        return item
+        return ""
+
+    if isinstance(raw_output, list) and raw_output:
+        # Common HF return: list[dict]
+        for item in reversed(raw_output):
+            txt = _extract_generated_text_from_pipeline_output(item)
+            if txt:
+                return txt
+    return ""
+
+
+class HfVlmChatScorer(BaseVLMScorer):
+    def __init__(self, cfg: dict[str, Any]):
+        self.log = get_logger("stage_d_hf_vlm_chat")
+        self.cfg = cfg
+        self.device = _resolve_device(str(cfg.get("device_preference", "auto")))
+        self.model_name = str(cfg.get("hf_vlm_model_name", "Qwen/Qwen2.5-VL-3B-Instruct"))
+        self.max_new_tokens = int(cfg.get("hf_vlm_max_new_tokens", 220))
+        self.temperature = float(cfg.get("hf_vlm_temperature", 0.0))
+        self.load_in_4bit = bool(cfg.get("hf_vlm_load_in_4bit", True))
+        self.prompt = str(cfg.get("prompt", "")).strip()
+        self._pipe = None
+        self._init_pipe()
+
+    def _init_pipe(self) -> None:
+        from transformers import pipeline
+
+        pipe_kwargs: dict[str, Any] = {
+            "task": "image-text-to-text",
+            "model": self.model_name,
+        }
+        model_kwargs: dict[str, Any] = {}
+
+        # On GPU, 4-bit load is the preferred default for 7B-class VLMs.
+        if self.device == "cuda":
+            model_kwargs["torch_dtype"] = torch.float16
+            if self.load_in_4bit:
+                model_kwargs["load_in_4bit"] = True
+            pipe_kwargs["device_map"] = "auto"
+        elif self.device == "mps":
+            model_kwargs["torch_dtype"] = torch.float16
+            pipe_kwargs["device_map"] = "auto"
+
+        if model_kwargs:
+            pipe_kwargs["model_kwargs"] = model_kwargs
+
+        self._pipe = pipeline(**pipe_kwargs)
+        self.log.info("Stage D backend: hf_vlm_chat (%s) on %s", self.model_name, self.device)
+
+    def _run_inference(self, image_path: Path, prompt: str) -> str:
+        if self._pipe is None:
+            raise RuntimeError("VLM pipeline is not initialized")
+
+        # Try chat-style call first (works for many newer VLMs).
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "image", "image": str(image_path)},
+                    {"type": "text", "text": prompt},
+                ],
+            }
+        ]
+        try:
+            out = self._pipe(
+                text=messages,
+                max_new_tokens=self.max_new_tokens,
+                do_sample=self.temperature > 0.0,
+                temperature=max(1e-4, self.temperature),
+            )
+            txt = _extract_generated_text_from_pipeline_output(out)
+            if txt:
+                return txt
+        except Exception:
+            pass
+
+        # Fallback for non-chat image-text-to-text pipelines.
+        with Image.open(image_path) as im:
+            image = im.convert("RGB")
+        out = self._pipe(
+            image=image,
+            text=prompt,
+            max_new_tokens=self.max_new_tokens,
+            do_sample=self.temperature > 0.0,
+            temperature=max(1e-4, self.temperature),
+        )
+        txt = _extract_generated_text_from_pipeline_output(out)
+        if not txt:
+            raise RuntimeError("HF VLM chat backend produced empty output")
+        return txt
+
+    def score_image_vlm(self, image_path: Path) -> VLMScore:
+        strict_prompt = (
+            f"{self.prompt}\n\n"
+            "Return only valid JSON with fields: score_0_100, decision, main_reason, flags. "
+            "Do not wrap in markdown."
+        )
+        raw_text = self._run_inference(image_path=image_path, prompt=strict_prompt)
+        parsed = _extract_first_json_object(raw_text)
+        return _normalize_vlm_score(parsed)
 
 
 class HfBlipVqaRubricScorer(BaseVLMScorer):
@@ -240,6 +423,8 @@ def build_vlm_scorer(cfg: dict[str, Any]) -> BaseVLMScorer:
         return ExternalCommandVLMScorer(command=command, prompt=prompt)
     if backend == "hf_blip_vqa":
         return HfBlipVqaRubricScorer(cfg=cfg)
+    if backend == "hf_vlm_chat":
+        return HfVlmChatScorer(cfg=cfg)
     raise ValueError(f"Unsupported stage_d backend: {backend}")
 
 

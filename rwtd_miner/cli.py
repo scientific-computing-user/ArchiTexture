@@ -1047,7 +1047,11 @@ def build_parser() -> argparse.ArgumentParser:
     p_ade.add_argument("--review_limit", type=int, default=1500)
     p_ade.add_argument("--enable_clip", action="store_true")
     p_ade.add_argument("--enable_vlm", action="store_true")
-    p_ade.add_argument("--vlm_backend", default="hf_blip_vqa", choices=["hf_blip_vqa", "external_command", "stub"])
+    p_ade.add_argument(
+        "--vlm_backend",
+        default="hf_blip_vqa",
+        choices=["hf_blip_vqa", "hf_vlm_chat", "external_command", "stub"],
+    )
     p_ade.add_argument("--vlm_external_command", default="")
     p_ade.add_argument("--vlm_model_name", default="Salesforce/blip-vqa-base")
     p_ade.add_argument("--vlm_device", default="auto", choices=["auto", "cpu", "mps", "cuda"])

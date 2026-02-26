@@ -110,12 +110,17 @@ stage_c:
 
 stage_d:
   enabled: false
-  backend: stub   # stub | hf_blip_vqa | external_command
+  backend: stub   # stub | hf_blip_vqa | hf_vlm_chat | external_command
   score_top_n_from_stage_b: 2000
   external_command: ""  # Example: python /Users/galoren/TextureData/rwtd_miner/scripts/vlm_wrapper_gemini.py --model gemini-2.5-flash-lite
   # Optional for hf_blip_vqa backend:
   hf_blip_vqa_model_name: "Salesforce/blip-vqa-base"
   hf_blip_max_new_tokens: 12
+  # Optional for hf_vlm_chat backend (GPU server):
+  hf_vlm_model_name: "Qwen/Qwen2.5-VL-3B-Instruct"
+  hf_vlm_max_new_tokens: 220
+  hf_vlm_temperature: 0.0
+  hf_vlm_load_in_4bit: true
   device_preference: auto
   prompt: |
     Task:

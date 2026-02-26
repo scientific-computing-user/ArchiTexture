@@ -20,6 +20,7 @@ ade20k_eval_multimodal/
 calibration_rwtd/
 review_ade_rwtd/
 review_ade_rwtd_test/
+.tmp/
 
 # Large caches
 .cache/
