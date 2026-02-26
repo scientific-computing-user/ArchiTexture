@@ -1,21 +1,20 @@
 {
-  "source": "/Users/galoren/TextureData/outputs/html_review",
-  "out": "/Users/galoren/TextureData/rwtd_miner_github_repo/docs/review",
-  "n_input": 1756,
-  "n_output": 1756,
+  "source": "/home/galoren/rwtd_runs/coco_stuff_vlm_valonly_20260226_2121/batches/batch_00000/review",
+  "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
+  "n_input": 329,
+  "n_output": 260,
   "copied": {
-    "thumb": 1756,
-    "mask": 1756,
-    "overlay": 1756,
-    "original": 1756
+    "thumb": 260,
+    "mask": 0,
+    "overlay": 0,
+    "original": 260
   },
   "by_status": {
-    "selected": 763,
-    "borderline": 390,
-    "rejected": 603
+    "selected": 8,
+    "borderline": 1,
+    "rejected": 251
   },
   "by_dataset": {
-    "ade20k": 1500,
-    "rwtd_reference": 256
+    "sa1b_local": 260
   }
 }
