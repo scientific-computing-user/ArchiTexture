@@ -1,23 +1,23 @@
 {
-  "source": "/home/galoren/rwtd_runs/coco_stuff_vlm_valonly_20260226_2121/batches/batch_00000/review",
+  "source": "/home/galoren/rwtd_runs/coco_stuff_vlm_valannot_fix2_20260226_2144/batches/batch_00000/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
   "n_input": 329,
-  "n_existing": 1756,
+  "n_existing": 2016,
   "n_new_selected": 260,
-  "n_output": 2016,
+  "n_output": 2073,
   "copied": {
     "thumb": 260,
-    "mask": 0,
-    "overlay": 0,
+    "mask": 260,
+    "overlay": 260,
     "original": 260
   },
   "by_status": {
-    "selected": 771,
-    "borderline": 391,
-    "rejected": 854
+    "selected": 797,
+    "rejected": 820,
+    "borderline": 456
   },
   "by_dataset": {
-    "coco_stuff": 260,
+    "coco_stuff": 317,
     "ade20k": 1500,
     "rwtd_reference": 256
   }
