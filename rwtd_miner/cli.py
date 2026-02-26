@@ -200,8 +200,9 @@ def _apply_semantic_object_gates(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.Da
 
     out["semantic_gate_failed"] = fail.astype(bool)
     out["semantic_gate_reasons"] = ["|".join(xs) if xs else "" for xs in reasons]
-    out.loc[out["semantic_gate_failed"], "final_selected"] = False
-    out.loc[out["semantic_gate_failed"], "final_borderline"] = False
+    if bool(gate_cfg.get("apply_as_hard_reject", False)):
+        out.loc[out["semantic_gate_failed"], "final_selected"] = False
+        out.loc[out["semantic_gate_failed"], "final_borderline"] = False
     if "selection_reason" in out.columns:
         gate_rows = out["semantic_gate_failed"].fillna(False)
         out.loc[gate_rows, "selection_reason"] = (
@@ -210,6 +211,115 @@ def _apply_semantic_object_gates(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.Da
             .astype(str)
             .map(lambda s: s if "semantic_gate" in s else (f"{s}|semantic_gate" if s else "semantic_gate"))
         )
+    return out
+
+
+def _apply_generalized_selection_model(df: pd.DataFrame, cfg: dict[str, Any], stage_d_enabled: bool) -> pd.DataFrame:
+    out = df.copy()
+    sel_cfg = cfg.get("selection", {})
+    model_cfg = sel_cfg.get("generalized_model", {})
+    if not bool(model_cfg.get("enabled", True)):
+        return out
+
+    n = len(out)
+    idx = out.index
+
+    geom = pd.to_numeric(out.get("geom_texture_boundary_score", pd.Series([np.nan] * n, index=idx)), errors="coerce")
+    if geom.notna().sum() == 0:
+        geom = pd.to_numeric(out.get("stageA_rwtd_score", pd.Series([np.nan] * n, index=idx)), errors="coerce")
+    clip_raw = pd.to_numeric(out.get("stageB_clip_score", pd.Series([np.nan] * n, index=idx)), errors="coerce")
+    clip100 = _clip_score_to_100(clip_raw)
+    vlm = pd.to_numeric(out.get("stageD_score_0_100", pd.Series([np.nan] * n, index=idx)), errors="coerce")
+
+    w_geom = float(model_cfg.get("weight_geometry", 0.62))
+    w_clip = float(model_cfg.get("weight_clip", 0.16))
+    w_vlm = float(model_cfg.get("weight_vlm", 0.22))
+
+    fused_num = pd.Series(np.zeros(n, dtype=float), index=idx)
+    fused_den = pd.Series(np.zeros(n, dtype=float), index=idx)
+
+    m_geom = geom.notna()
+    fused_num = fused_num + np.where(m_geom, w_geom * geom.fillna(0.0), 0.0)
+    fused_den = fused_den + np.where(m_geom, w_geom, 0.0)
+
+    m_clip = clip_raw.notna()
+    fused_num = fused_num + np.where(m_clip, w_clip * clip100.fillna(0.0), 0.0)
+    fused_den = fused_den + np.where(m_clip, w_clip, 0.0)
+
+    m_vlm = vlm.notna()
+    fused_num = fused_num + np.where(m_vlm, w_vlm * vlm.fillna(0.0), 0.0)
+    fused_den = fused_den + np.where(m_vlm, w_vlm, 0.0)
+
+    prior = pd.to_numeric(out.get("review_score", pd.Series([0.0] * n, index=idx)), errors="coerce").fillna(0.0)
+    fused = fused_num / fused_den.replace(0.0, np.nan)
+    fused = fused.fillna(prior).astype(float)
+
+    tf = pd.to_numeric(out.get("thing_fraction", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
+    ltf = pd.to_numeric(out.get("largest_thing_fraction", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
+    pva = pd.to_numeric(out.get("person_vehicle_animal_fraction", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
+    nlarge = pd.to_numeric(out.get("num_large_thing_instances", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
+    geom_obj = pd.to_numeric(out.get("geom_object_fraction", pd.Series([np.nan] * n, index=idx)), errors="coerce").fillna(0.0)
+
+    soft_penalty = (
+        float(model_cfg.get("soft_penalty_thing_fraction_weight", 28.0)) * tf
+        + float(model_cfg.get("soft_penalty_largest_thing_weight", 36.0)) * ltf
+        + float(model_cfg.get("soft_penalty_pva_weight", 42.0)) * pva
+        + float(model_cfg.get("soft_penalty_geom_object_weight", 16.0)) * geom_obj
+        + float(model_cfg.get("soft_penalty_large_instances_weight", 3.0)) * np.clip(nlarge - 1.0, 0.0, None)
+    )
+
+    flags = out.get("stageD_flags", pd.Series([""] * n, index=idx)).fillna("").astype(str)
+    decisions = out.get("stageD_decision", pd.Series([""] * n, index=idx)).fillna("").astype(str)
+
+    hard = pd.Series(False, index=idx)
+    if bool(model_cfg.get("hard_veto_enabled", True)):
+        hard = hard | (tf > float(model_cfg.get("hard_veto_thing_fraction_max", 0.35)))
+        hard = hard | (ltf > float(model_cfg.get("hard_veto_largest_thing_fraction_max", 0.15)))
+        hard = hard | (nlarge > float(model_cfg.get("hard_veto_num_large_instances_max", 3)))
+        hard = hard | (pva > float(model_cfg.get("hard_veto_pva_fraction_max", 0.08)))
+        if bool(model_cfg.get("hard_veto_object_centric_flag", True)):
+            hard = hard | flags.str.contains("object_centric", na=False)
+
+    override = pd.Series(False, index=idx)
+    if bool(model_cfg.get("texture_override_enabled", True)):
+        override = (
+            (geom >= float(model_cfg.get("texture_override_min_geom_score", 88.0)))
+            & (tf <= float(model_cfg.get("texture_override_max_thing_fraction", 0.03)))
+            & (ltf <= float(model_cfg.get("texture_override_max_largest_thing_fraction", 0.015)))
+            & (pva <= float(model_cfg.get("texture_override_max_pva_fraction", 0.01)))
+            & (geom_obj <= float(model_cfg.get("texture_override_max_geom_object_fraction", 0.08)))
+            & (~flags.str.contains("object_centric", na=False))
+        )
+
+    score = fused - soft_penalty + np.where(override, float(model_cfg.get("texture_override_bonus", 18.0)), 0.0)
+    score = score.clip(lower=0.0, upper=100.0).astype(float)
+    out["review_score"] = score
+    out["objectness_soft_penalty"] = soft_penalty.astype(float)
+    out["objectness_hard_veto"] = hard.astype(bool)
+    out["texture_override_applied"] = override.astype(bool)
+
+    selected_min = float(model_cfg.get("selected_score_min", sel_cfg.get("match_score_min", 80)))
+    borderline_min = float(model_cfg.get("borderline_score_min", sel_cfg.get("borderline_score_min", 70)))
+
+    out["final_selected"] = (score >= selected_min) & (~hard)
+    out["final_borderline"] = (~out["final_selected"]) & (score >= borderline_min) & (~hard)
+
+    if bool(model_cfg.get("require_match_decision_for_selected", False)):
+        # Apply this only where VLM is actually available; keep non-VLM datasets usable.
+        has_vlm = vlm.notna()
+        out.loc[has_vlm & (decisions != "match"), "final_selected"] = False
+
+    if bool(model_cfg.get("borderline_requires_non_not_match", False)):
+        has_vlm = vlm.notna()
+        out.loc[has_vlm & (decisions == "not_match"), "final_borderline"] = False
+
+    if stage_d_enabled and bool(sel_cfg.get("require_stage_d_for_selection", False)):
+        has_vlm = vlm.notna()
+        out.loc[~has_vlm, "final_selected"] = False
+        out.loc[~has_vlm, "final_borderline"] = False
+
+    reason = out.get("selection_reason", pd.Series([""] * n, index=idx)).fillna("").astype(str)
+    out["selection_reason"] = reason.map(lambda s: s if "generalized_model" in s else (f"{s}|generalized_model" if s else "generalized_model"))
     return out
 
 
@@ -283,6 +393,7 @@ def _select_final(df: pd.DataFrame, cfg: dict[str, Any], stage_d_enabled: bool) 
             out["final_selected"] = False
 
     out = _apply_semantic_object_gates(out, cfg)
+    out = _apply_generalized_selection_model(out, cfg=cfg, stage_d_enabled=stage_d_enabled)
 
     cap = sel_cfg.get("top_n_cap")
     if cap not in (None, "", 0):
