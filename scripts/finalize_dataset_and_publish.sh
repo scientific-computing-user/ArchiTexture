@@ -120,6 +120,8 @@ python "$CODE_REPO/scripts/build_pages_bundle.py" \
   --out_review "$CODE_REPO/docs/review" \
   --max_samples "$MAX_SAMPLES" \
   --seed "$SEED" \
+  --dataset_id "$DATASET_ID" \
+  --merge_existing \
   | tee "$CODE_REPO/docs/review/bundle_stdout.json" >/dev/null
 
 # 2) Create progress entry JSON.

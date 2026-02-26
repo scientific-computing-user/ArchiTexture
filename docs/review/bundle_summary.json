@@ -2,7 +2,9 @@
   "source": "/home/galoren/rwtd_runs/coco_stuff_vlm_valonly_20260226_2121/batches/batch_00000/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
   "n_input": 329,
-  "n_output": 260,
+  "n_existing": 1756,
+  "n_new_selected": 260,
+  "n_output": 2016,
   "copied": {
     "thumb": 260,
     "mask": 0,
@@ -10,11 +12,13 @@
     "original": 260
   },
   "by_status": {
-    "selected": 8,
-    "borderline": 1,
-    "rejected": 251
+    "selected": 771,
+    "borderline": 391,
+    "rejected": 854
   },
   "by_dataset": {
-    "sa1b_local": 260
+    "coco_stuff": 260,
+    "ade20k": 1500,
+    "rwtd_reference": 256
   }
 }

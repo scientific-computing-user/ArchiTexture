@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import random
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -64,7 +65,42 @@ def _safe_copy(src: Path, dst: Path) -> bool:
     return True
 
 
-def build_bundle(source_review_dir: Path, out_review_dir: Path, max_samples: int, seed: int) -> dict[str, Any]:
+def _safe_slug(text: str) -> str:
+    s = re.sub(r"[^a-zA-Z0-9._-]+", "_", str(text).strip())
+    s = s.strip("._")
+    return s or "item"
+
+
+def _row_key(row: dict[str, Any]) -> str:
+    dataset = str(row.get("dataset") or "unknown").strip()
+    image_id = str(row.get("image_id") or "unknown").strip()
+    return f"{dataset}::{image_id}"
+
+
+def _load_existing_rows(data_json_path: Path) -> list[dict[str, Any]]:
+    if not data_json_path.exists():
+        return []
+    try:
+        rows = json.loads(data_json_path.read_text(encoding="utf-8"))
+    except Exception:
+        return []
+    if not isinstance(rows, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for r in rows:
+        if isinstance(r, dict):
+            out.append(dict(r))
+    return out
+
+
+def build_bundle(
+    source_review_dir: Path,
+    out_review_dir: Path,
+    max_samples: int,
+    seed: int,
+    dataset_id: str = "",
+    merge_existing: bool = False,
+) -> dict[str, Any]:
     data_path = source_review_dir / "data.json"
     if not data_path.exists():
         raise FileNotFoundError(f"Missing data.json: {data_path}")
@@ -73,10 +109,21 @@ def build_bundle(source_review_dir: Path, out_review_dir: Path, max_samples: int
     if not isinstance(rows, list):
         raise RuntimeError("data.json is not a list")
 
+    dataset_id = str(dataset_id or "").strip()
+    if dataset_id:
+        for r in rows:
+            if isinstance(r, dict):
+                r["dataset"] = dataset_id
+
     if int(max_samples) <= 0:
         selected = list(rows)
     else:
         selected = _balanced_pick(rows, max_samples=max_samples, seed=seed)
+
+    existing_rows = _load_existing_rows(out_review_dir / "data.json") if merge_existing else []
+    merged: dict[str, dict[str, Any]] = {}
+    for r in existing_rows:
+        merged[_row_key(r)] = dict(r)
 
     out_review_dir.mkdir(parents=True, exist_ok=True)
     for sub in ("thumbnails", "masks", "overlays", "originals"):
@@ -94,13 +141,15 @@ def build_bundle(source_review_dir: Path, out_review_dir: Path, max_samples: int
     for r in selected:
         row = dict(r)
         image_id = str(row.get("image_id") or "unknown")
+        dataset = str(row.get("dataset") or dataset_id or "unknown")
+        asset_stem = _safe_slug(f"{dataset}__{image_id}")
         thumb_out_rel = ""
 
         # Thumbnail (relative path from source review dir).
         thumb_rel = str(row.get("thumb") or "").strip()
         if thumb_rel:
             src_thumb = source_review_dir / thumb_rel
-            thumb_name = f"{image_id}.jpg"
+            thumb_name = f"{asset_stem}.jpg"
             dst_thumb = out_review_dir / "thumbnails" / thumb_name
             if _safe_copy(src_thumb, dst_thumb):
                 thumb_out_rel = f"thumbnails/{thumb_name}"
@@ -112,7 +161,7 @@ def build_bundle(source_review_dir: Path, out_review_dir: Path, max_samples: int
         mask_ok = False
         if mask_rel:
             src_mask = source_review_dir / mask_rel
-            mask_name = f"{image_id}.jpg"
+            mask_name = f"{asset_stem}.jpg"
             dst_mask = out_review_dir / "masks" / mask_name
             if _safe_copy(src_mask, dst_mask):
                 row["mask_rel"] = f"masks/{mask_name}"
@@ -125,7 +174,7 @@ def build_bundle(source_review_dir: Path, out_review_dir: Path, max_samples: int
         overlay_ok = False
         if overlay_rel:
             src_overlay = source_review_dir / overlay_rel
-            overlay_name = f"{image_id}.jpg"
+            overlay_name = f"{asset_stem}.jpg"
             dst_overlay = out_review_dir / "overlays" / overlay_name
             if _safe_copy(src_overlay, dst_overlay):
                 row["overlay_rel"] = f"overlays/{overlay_name}"
@@ -138,15 +187,18 @@ def build_bundle(source_review_dir: Path, out_review_dir: Path, max_samples: int
         img_path = Path(str(row.get("image_path") or "")).expanduser()
         if img_path.exists() and img_path.is_file():
             ext = img_path.suffix.lower() or ".jpg"
-            dst_orig = out_review_dir / "originals" / f"{image_id}{ext}"
+            dst_orig = out_review_dir / "originals" / f"{asset_stem}{ext}"
             if _safe_copy(img_path, dst_orig):
-                row["image_path"] = f"originals/{image_id}{ext}"
+                row["image_path"] = f"originals/{asset_stem}{ext}"
                 copied["original"] += 1
         else:
             # Fallback to thumbnail if original is unavailable.
             row["image_path"] = thumb_out_rel
 
-        out_rows.append(row)
+        merged[_row_key(row)] = row
+
+    out_rows.extend(merged.values())
+    out_rows.sort(key=lambda x: float(x.get("final_score") or 0.0), reverse=True)
 
     # Write JSON + JS payload for viewer.
     data_json_path = out_review_dir / "data.json"
@@ -166,6 +218,8 @@ def build_bundle(source_review_dir: Path, out_review_dir: Path, max_samples: int
         "source": str(source_review_dir),
         "out": str(out_review_dir),
         "n_input": len(rows),
+        "n_existing": len(existing_rows),
+        "n_new_selected": len(selected),
         "n_output": len(out_rows),
         "copied": copied,
         "by_status": by_status,
@@ -181,6 +235,8 @@ def main() -> int:
     ap.add_argument("--out_review", required=True)
     ap.add_argument("--max_samples", type=int, default=180)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--dataset_id", default="")
+    ap.add_argument("--merge_existing", action="store_true")
     args = ap.parse_args()
 
     summary = build_bundle(
@@ -188,6 +244,8 @@ def main() -> int:
         out_review_dir=Path(args.out_review),
         max_samples=int(args.max_samples),
         seed=int(args.seed),
+        dataset_id=str(args.dataset_id),
+        merge_existing=bool(args.merge_existing),
     )
     print(json.dumps(summary, indent=2))
     return 0
