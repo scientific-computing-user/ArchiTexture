@@ -57,6 +57,13 @@ fi
 printf "\n[latest summaries]\n"
 find . -type f \( -name 'ade20k_eval_summary*.json' -o -name 'calibration_summary.json' -o -name 'bundle_summary.json' \) -print | head -n 20
 
+printf "\n[github push health]\n"
+echo "auth setup script: scripts/setup_server_github_auth.sh"
+echo "push check script: scripts/check_server_github_push.sh"
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+  echo "origin: $(git remote get-url origin 2>/dev/null || true)"
+fi
+
 printf "\n[next suggested command]\n"
 echo "bash scripts/run_ade20k_rwtd.sh --profile server_rtx3090_fast --out /path/to/output --skip_download"
 

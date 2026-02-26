@@ -15,6 +15,20 @@ On server:
 cd /home/<user>/rwtd_miner_github_repo
 ```
 
+### GitHub push setup on server (required)
+
+Run this once on server to enable GitHub push from Codex:
+
+```bash
+bash scripts/setup_server_github_auth.sh --git-name "<your name>" --git-email "<your email>"
+```
+
+Then add the printed SSH public key in GitHub (Settings -> SSH and GPG keys), and verify:
+
+```bash
+bash scripts/check_server_github_push.sh
+```
+
 ## 2) Bootstrap environment
 Fast profile (recommended first run):
 

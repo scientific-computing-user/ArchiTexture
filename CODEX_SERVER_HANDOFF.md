@@ -8,6 +8,15 @@ cd /home/<user>/rwtd_miner_github_repo && bash scripts/codex_resume.sh
 
 This prints repository status, environment status, available profiles, handoff docs, dataset registry, latest summaries, and a bootstrap prompt for Codex.
 
+## Ensure GitHub push works from server
+
+```bash
+bash scripts/setup_server_github_auth.sh --git-name "<your name>" --git-email "<your email>"
+bash scripts/check_server_github_push.sh
+```
+
+If you also clone the public site repo on server, run the same two scripts inside that repo as well.
+
 ## Recommended first prompt to Codex on server
 
 "Run `bash scripts/codex_resume.sh`, then read `SERVER_START_HERE.md`, `SERVER_NON_ADE20K_SCOPE.md`, and `configs/datasets/non_ade20k_registry.yaml`. Continue with VLM-enabled server execution and resumable outputs."

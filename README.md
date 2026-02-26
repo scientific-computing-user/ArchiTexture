@@ -104,6 +104,10 @@ Migration + handoff docs:
 - `SERVER_NON_ADE20K_SCOPE.md` (next-dataset scope, time estimates, server-only download plan)
 - `SERVER_START_HERE.md` (VLM-first server mission and execution order)
 
+Server GitHub push setup scripts:
+- `scripts/setup_server_github_auth.sh`
+- `scripts/check_server_github_push.sh`
+
 Resume context quickly (useful after moving to another machine):
 
 ```bash
