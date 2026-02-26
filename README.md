@@ -102,6 +102,7 @@ Migration + handoff docs:
 - `SERVER_MIGRATION.md`
 - `CODEX_SERVER_HANDOFF.md`
 - `SERVER_NON_ADE20K_SCOPE.md` (next-dataset scope, time estimates, server-only download plan)
+- `SERVER_START_HERE.md` (VLM-first server mission and execution order)
 
 Resume context quickly (useful after moving to another machine):
 

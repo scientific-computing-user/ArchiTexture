@@ -55,3 +55,7 @@ After run completes, open:
 - Profiles are overlays under `configs/profiles/` merged with `config.yaml`.
 - Stage B (CLIP) and Stage D (VLM) are enabled in both server profiles.
 - All outputs/manifests remain resumable and checkpointed.
+- Non-ADE20K server scope and timing:
+  - `SERVER_NON_ADE20K_SCOPE.md`
+- Server mission + execution order:
+  - `SERVER_START_HERE.md`

@@ -1,0 +1,122 @@
+datasets:
+  - id: coco_stuff
+    priority: 1
+    approx_images: 123000
+    access_mode: http_public
+    target_dir: /data/rwtd_datasets/coco
+    notes: "Use COCO 2017 train+val RGB and stuff annotations."
+    expected_layout:
+      - raw/train2017/
+      - raw/val2017/
+      - raw/annotations/
+
+  - id: mapillary_vistas_v2
+    priority: 2
+    approx_images: 25000
+    access_mode: gated_manual
+    target_dir: /data/rwtd_datasets/mapillary_vistas
+    notes: "Requires terms acceptance/login."
+    expected_layout:
+      - images/
+      - labels/
+
+  - id: bdd100k_seg
+    priority: 3
+    approx_images: 10000
+    access_mode: gated_manual
+    target_dir: /data/rwtd_datasets/bdd100k
+    notes: "Use segmentation split and labels only."
+    expected_layout:
+      - images/
+      - labels/
+
+  - id: cityscapes
+    priority: 4
+    approx_images: 25000
+    access_mode: gated_manual
+    target_dir: /data/rwtd_datasets/cityscapes
+    notes: "Prefer fine + coarse annotations."
+    expected_layout:
+      - leftImg8bit/
+      - gtFine/
+      - gtCoarse/
+
+  - id: pascal_context
+    priority: 5
+    approx_images: 10000
+    access_mode: manual
+    target_dir: /data/rwtd_datasets/pascal_context
+    notes: "VOC + context labels, source-dependent packaging."
+    expected_layout:
+      - images/
+      - labels/
+
+  - id: coco_panoptic
+    priority: 6
+    approx_images: 123000
+    access_mode: http_public
+    target_dir: /data/rwtd_datasets/coco
+    notes: "Incremental over COCO RGB (shared images)."
+    expected_layout:
+      - raw/annotations/panoptic_*.json
+      - raw/annotations/panoptic_*/
+
+  - id: idd_segmentation
+    priority: 7
+    approx_images: 10000
+    access_mode: gated_manual
+    target_dir: /data/rwtd_datasets/idd
+    notes: "Official request flow."
+    expected_layout:
+      - images/
+      - labels/
+
+  - id: kitti_materials
+    priority: 8
+    approx_images: 2500
+    access_mode: manual
+    target_dir: /data/rwtd_datasets/kitti_materials
+    notes: "Use trusted mirror; keep metadata mapping."
+    expected_layout:
+      - images/
+      - labels/
+
+  - id: sun_rgbd
+    priority: 9
+    approx_images: 10335
+    access_mode: manual
+    target_dir: /data/rwtd_datasets/sunrgbd
+    notes: "RGB + semantic labels only."
+    expected_layout:
+      - images/
+      - labels/
+
+  - id: nyudv2
+    priority: 10
+    approx_images: 1449
+    access_mode: manual
+    target_dir: /data/rwtd_datasets/nyudv2
+    notes: "RGB + semantic labels subset."
+    expected_layout:
+      - images/
+      - labels/
+
+  - id: camvid
+    priority: 11
+    approx_images: 701
+    access_mode: manual
+    target_dir: /data/rwtd_datasets/camvid
+    notes: "Public mirror with labels."
+    expected_layout:
+      - images/
+      - labels/
+
+  - id: wilddash2
+    priority: 12
+    approx_images: 425
+    access_mode: manual
+    target_dir: /data/rwtd_datasets/wilddash2
+    notes: "Benchmark package with val labels."
+    expected_layout:
+      - images/
+      - labels/

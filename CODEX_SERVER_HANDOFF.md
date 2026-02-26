@@ -6,11 +6,11 @@
 cd /home/<user>/rwtd_miner_github_repo && bash scripts/codex_resume.sh
 ```
 
-This prints repository status, environment status, available profiles, and latest result summaries.
+This prints repository status, environment status, available profiles, handoff docs, dataset registry, latest summaries, and a bootstrap prompt for Codex.
 
 ## Recommended first prompt to Codex on server
 
-"Read `SERVER_MIGRATION.md`, `README.md`, and `RANKING_EXPLANATION.txt`, then run `bash scripts/codex_resume.sh` and continue from the latest ADE20K run output."
+"Run `bash scripts/codex_resume.sh`, then read `SERVER_START_HERE.md`, `SERVER_NON_ADE20K_SCOPE.md`, and `configs/datasets/non_ade20k_registry.yaml`. Continue with VLM-enabled server execution and resumable outputs."
 
 ## One-command execution after bootstrap
 
@@ -19,6 +19,9 @@ bash scripts/run_ade20k_rwtd.sh --profile server_rtx3090_fast --out /data/rwtd_r
 ```
 
 ## Files Codex should inspect first
+- `SERVER_START_HERE.md`
+- `SERVER_NON_ADE20K_SCOPE.md`
+- `configs/datasets/non_ade20k_registry.yaml`
 - `config.yaml`
 - `configs/profiles/server_rtx3090_fast.yaml`
 - `configs/profiles/server_rtx3090_quality.yaml`

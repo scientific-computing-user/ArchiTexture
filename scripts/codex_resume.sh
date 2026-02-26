@@ -36,8 +36,32 @@ fi
 printf "\n[profiles]\n"
 ls -1 configs/profiles/*.yaml 2>/dev/null || true
 
+printf "\n[handoff docs]\n"
+for f in \
+  SERVER_START_HERE.md \
+  SERVER_MIGRATION.md \
+  SERVER_NON_ADE20K_SCOPE.md \
+  CODEX_SERVER_HANDOFF.md \
+  README.md; do
+  [[ -f "$f" ]] && echo "$f"
+done
+
+printf "\n[dataset registry]\n"
+if [[ -f configs/datasets/non_ade20k_registry.yaml ]]; then
+  echo "configs/datasets/non_ade20k_registry.yaml"
+  head -n 80 configs/datasets/non_ade20k_registry.yaml
+else
+  echo "registry not found"
+fi
+
 printf "\n[latest summaries]\n"
 find . -type f \( -name 'ade20k_eval_summary*.json' -o -name 'calibration_summary.json' -o -name 'bundle_summary.json' \) -print | head -n 20
 
 printf "\n[next suggested command]\n"
 echo "bash scripts/run_ade20k_rwtd.sh --profile server_rtx3090_fast --out /path/to/output --skip_download"
+
+printf "\n[codex bootstrap prompt]\n"
+cat <<'EOF'
+Read SERVER_START_HERE.md, SERVER_NON_ADE20K_SCOPE.md, and configs/datasets/non_ade20k_registry.yaml.
+Then inspect current adapters and implement/execute the highest-priority pending dataset pipeline with VLM enabled, resumable checkpoints, and review-site outputs.
+EOF
