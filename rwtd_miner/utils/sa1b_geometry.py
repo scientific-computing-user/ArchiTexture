@@ -44,6 +44,50 @@ def _read_annotation_payload(annotation_ref: str) -> dict[str, Any] | None:
     return payload if isinstance(payload, dict) else None
 
 
+def _extract_annotations_for_image(
+    payload: dict[str, Any],
+    *,
+    image_id: str,
+    image_path: Path,
+) -> tuple[list[dict[str, Any]], int | None, int | None]:
+    # Per-image JSON payload (SA-1B-like).
+    if isinstance(payload.get("annotations"), list) and not isinstance(payload.get("images"), list):
+        image_meta = payload.get("image") if isinstance(payload.get("image"), dict) else {}
+        w = image_meta.get("width")
+        h = image_meta.get("height")
+        return payload.get("annotations", []), int(w) if w else None, int(h) if h else None
+
+    # COCO-style shard payload.
+    if isinstance(payload.get("images"), list) and isinstance(payload.get("annotations"), list):
+        images = payload.get("images", [])
+        anns = payload.get("annotations", [])
+        image_stem = image_path.stem
+        image_lookup = None
+        width = None
+        height = None
+        for im in images:
+            if not isinstance(im, dict):
+                continue
+            candidates = []
+            if im.get("id") is not None:
+                candidates.append(str(im.get("id")))
+            if im.get("image_id") is not None:
+                candidates.append(str(im.get("image_id")))
+            if im.get("file_name"):
+                candidates.append(Path(str(im.get("file_name"))).stem)
+            if image_id in candidates or image_stem in candidates:
+                image_lookup = im.get("id") if im.get("id") is not None else im.get("image_id")
+                width = int(im.get("width")) if im.get("width") else None
+                height = int(im.get("height")) if im.get("height") else None
+                break
+        if image_lookup is None:
+            return [], None, None
+        selected = [a for a in anns if isinstance(a, dict) and a.get("image_id") == image_lookup]
+        return selected, width, height
+
+    return [], None, None
+
+
 def _segment_stats(ann: dict, width: int, height: int) -> dict[str, float | bool]:
     area = float(ann.get("area", 0.0))
     bbox = ann.get("bbox", [0, 0, 0, 0])
@@ -98,18 +142,30 @@ def _classify_segment(st: dict[str, float | bool]) -> int:
     return 3
 
 
-def _decode_segmentation(segmentation: Any) -> np.ndarray | None:
-    if not isinstance(segmentation, dict):
-        return None
+def _decode_segmentation(segmentation: Any, *, width: int, height: int) -> np.ndarray | None:
     if mask_utils is None:
         return None
-    try:
-        m = mask_utils.decode(segmentation)
-        if m.ndim == 3:
-            m = m[:, :, 0]
-        return (m > 0).astype(np.uint8)
-    except Exception:
-        return None
+    if isinstance(segmentation, dict):
+        try:
+            m = mask_utils.decode(segmentation)
+            if m.ndim == 3:
+                m = m[:, :, 0]
+            return (m > 0).astype(np.uint8)
+        except Exception:
+            return None
+    if isinstance(segmentation, list):
+        try:
+            if segmentation and isinstance(segmentation[0], (int, float)):
+                rles = mask_utils.frPyObjects([segmentation], height, width)
+            else:
+                rles = mask_utils.frPyObjects(segmentation, height, width)
+            m = mask_utils.decode(rles)
+            if m.ndim == 3:
+                m = np.any(m > 0, axis=2)
+            return (m > 0).astype(np.uint8)
+        except Exception:
+            return None
+    return None
 
 
 def _boundary_pixels_and_counts(region_map: np.ndarray, large_ids: set[int]) -> tuple[set[tuple[int, int]], dict[tuple[int, int], int]]:
@@ -244,8 +300,7 @@ def _analyze_one(
             "geom_overlay_rel": None,
         }
 
-    image_meta = payload.get("image", {}) if isinstance(payload.get("image"), dict) else {}
-    anns = payload.get("annotations", []) if isinstance(payload.get("annotations"), list) else []
+    anns, ann_w, ann_h = _extract_annotations_for_image(payload, image_id=image_id, image_path=image_path)
     if not anns:
         return {
             "image_id": image_id,
@@ -261,8 +316,8 @@ def _analyze_one(
             "geom_overlay_rel": None,
         }
 
-    w = int(image_meta.get("width", 0) or 0)
-    h = int(image_meta.get("height", 0) or 0)
+    w = int(ann_w or 0)
+    h = int(ann_h or 0)
     if w <= 0 or h <= 0:
         with Image.open(image_path) as im:
             w, h = im.size
@@ -283,7 +338,7 @@ def _analyze_one(
         st = _segment_stats(ann, width=w, height=h)
         cls_id = _classify_segment(st)
         seg = ann.get("segmentation", {})
-        bm = _decode_segmentation(seg)
+        bm = _decode_segmentation(seg, width=w, height=h)
         if bm is None:
             continue
         if bm.shape != (out_h, out_w):

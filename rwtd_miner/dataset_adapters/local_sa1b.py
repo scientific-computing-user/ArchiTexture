@@ -37,15 +37,16 @@ class LocalSA1BAdapter(BaseDatasetAdapter):
 
     @staticmethod
     def _extract_image_key_from_entry(entry: dict) -> str | None:
-        for key in ("image_id", "id", "sa_id"):
-            value = entry.get(key)
-            if value is not None:
-                return str(value)
+        # Prefer filename-derived keys to preserve zero padding (e.g., COCO ids).
         for key in ("file_name", "image_path", "image"):
             value = entry.get(key)
             if not value:
                 continue
             return Path(str(value)).stem
+        for key in ("image_id", "id", "sa_id"):
+            value = entry.get(key)
+            if value is not None:
+                return str(value)
         image = entry.get("image")
         if isinstance(image, dict):
             fname = image.get("file_name")
@@ -61,7 +62,10 @@ class LocalSA1BAdapter(BaseDatasetAdapter):
         if not self.annotations_dir.exists() or not self.scan_annotation_shards:
             return shard_map
 
-        shard_files = [p for p in self.annotations_dir.rglob("*.json") if p.stem not in direct_map]
+        # Scan shard-like JSON files first (typically larger files with many annotations).
+        # The previous stem-based filter could skip every JSON file, leaving shard_map empty.
+        shard_files = list(self.annotations_dir.rglob("*.json"))
+        shard_files.sort(key=lambda p: (-p.stat().st_size, str(p)))
         if self.shard_scan_max_files > 0:
             shard_files = shard_files[: self.shard_scan_max_files]
 

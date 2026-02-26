@@ -122,6 +122,7 @@ python "$CODE_REPO/scripts/build_pages_bundle.py" \
   --seed "$SEED" \
   --dataset_id "$DATASET_ID" \
   --merge_existing \
+  --replace_dataset \
   | tee "$CODE_REPO/docs/review/bundle_stdout.json" >/dev/null
 
 # 2) Create progress entry JSON.

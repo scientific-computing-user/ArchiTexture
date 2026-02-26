@@ -100,6 +100,7 @@ def build_bundle(
     seed: int,
     dataset_id: str = "",
     merge_existing: bool = False,
+    replace_dataset: bool = False,
 ) -> dict[str, Any]:
     data_path = source_review_dir / "data.json"
     if not data_path.exists():
@@ -121,6 +122,11 @@ def build_bundle(
         selected = _balanced_pick(rows, max_samples=max_samples, seed=seed)
 
     existing_rows = _load_existing_rows(out_review_dir / "data.json") if merge_existing else []
+    replaced_existing = 0
+    if merge_existing and replace_dataset and dataset_id:
+        kept_rows = [r for r in existing_rows if str(r.get("dataset") or "").strip() != dataset_id]
+        replaced_existing = len(existing_rows) - len(kept_rows)
+        existing_rows = kept_rows
     merged: dict[str, dict[str, Any]] = {}
     for r in existing_rows:
         merged[_row_key(r)] = dict(r)
@@ -219,6 +225,7 @@ def build_bundle(
         "out": str(out_review_dir),
         "n_input": len(rows),
         "n_existing": len(existing_rows),
+        "n_existing_replaced_for_dataset": int(replaced_existing),
         "n_new_selected": len(selected),
         "n_output": len(out_rows),
         "copied": copied,
@@ -237,6 +244,7 @@ def main() -> int:
     ap.add_argument("--seed", type=int, default=42)
     ap.add_argument("--dataset_id", default="")
     ap.add_argument("--merge_existing", action="store_true")
+    ap.add_argument("--replace_dataset", action="store_true")
     args = ap.parse_args()
 
     summary = build_bundle(
@@ -246,6 +254,7 @@ def main() -> int:
         seed=int(args.seed),
         dataset_id=str(args.dataset_id),
         merge_existing=bool(args.merge_existing),
+        replace_dataset=bool(args.replace_dataset),
     )
     print(json.dumps(summary, indent=2))
     return 0
