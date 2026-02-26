@@ -1,5 +1,5 @@
 {
-  "source": "/home/galoren/rwtd_runs/coco_stuff_vlm_coco_ultra_strict_20260226_2201/batches/batch_00000/review",
+  "source": "/home/galoren/rwtd_runs/coco_stuff_vlm_coco_ultra_strict_v2_20260226_2212/batches/batch_00000/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
   "n_input": 329,
   "n_existing": 1756,
@@ -13,9 +13,9 @@
     "original": 260
   },
   "by_status": {
-    "rejected": 863,
-    "selected": 763,
-    "borderline": 390
+    "selected": 770,
+    "rejected": 855,
+    "borderline": 391
   },
   "by_dataset": {
     "coco_stuff": 260,
