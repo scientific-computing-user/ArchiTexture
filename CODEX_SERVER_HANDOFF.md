@@ -21,6 +21,23 @@ If you also clone the public site repo on server, run the same two scripts insid
 
 "Run `bash scripts/codex_resume.sh`, then read `SERVER_START_HERE.md`, `SERVER_NON_ADE20K_SCOPE.md`, and `configs/datasets/non_ade20k_registry.yaml`. Continue with VLM-enabled server execution and resumable outputs."
 
+## Per-dataset completion protocol (mandatory)
+
+After each dataset run completes, Codex should execute:
+
+```bash
+bash scripts/finalize_dataset_and_publish.sh \
+  --dataset_id <dataset_id> \
+  --run_dir <dataset_run_dir> \
+  --public_repo /home/<user>/rwtd_miner_public_site
+```
+
+This gives:
+- immediate website refresh for review,
+- private+public git updates,
+- a machine-readable notice in `progress/last_notice.txt`,
+- rolling board in `progress/datasets_progress_latest.md`.
+
 ## One-command execution after bootstrap
 
 ```bash

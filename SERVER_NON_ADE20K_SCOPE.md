@@ -67,6 +67,22 @@ Notes:
 - Gated/manual datasets are listed with target folders and required manual steps.
 - No downloads should be run on the iMac for this scope.
 
+## Incremental publish per dataset
+
+After each dataset run completes, publish progress immediately:
+
+```bash
+bash scripts/finalize_dataset_and_publish.sh \
+  --dataset_id <dataset_id> \
+  --run_dir <dataset_run_dir> \
+  --public_repo /home/<user>/rwtd_miner_public_site
+```
+
+This updates:
+- private repo progress logs,
+- public review website bundle,
+- and a completion notice file (`progress/last_notice.txt`).
+
 ## Adapter status
 
 Current codebase has production flow for ADE20K/RWTD and SA-1B path.

@@ -107,6 +107,7 @@ Migration + handoff docs:
 Server GitHub push setup scripts:
 - `scripts/setup_server_github_auth.sh`
 - `scripts/check_server_github_push.sh`
+- `scripts/finalize_dataset_and_publish.sh` (after each dataset run: refresh review bundle + commit/push + progress notice)
 
 Resume context quickly (useful after moving to another machine):
 
@@ -119,6 +120,15 @@ Plan/download the non-ADE20K dataset scope on server:
 ```bash
 bash scripts/prepare_non_ade20k_server.sh --root /data/rwtd_datasets --mode plan
 bash scripts/prepare_non_ade20k_server.sh --root /data/rwtd_datasets --mode download_public
+```
+
+Publish progress after each finished dataset (website + git updates):
+
+```bash
+bash scripts/finalize_dataset_and_publish.sh \
+  --dataset_id <dataset_id> \
+  --run_dir <dataset_run_dir> \
+  --public_repo /home/<user>/rwtd_miner_public_site
 ```
 
 ## CLI

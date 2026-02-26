@@ -57,15 +57,29 @@ fi
 printf "\n[latest summaries]\n"
 find . -type f \( -name 'ade20k_eval_summary*.json' -o -name 'calibration_summary.json' -o -name 'bundle_summary.json' \) -print | head -n 20
 
+printf "\n[progress board]\n"
+if [[ -f progress/datasets_progress_latest.md ]]; then
+  sed -n '1,60p' progress/datasets_progress_latest.md
+else
+  echo "progress/datasets_progress_latest.md not found yet"
+fi
+if [[ -f progress/last_notice.txt ]]; then
+  echo
+  echo "last notice:"
+  cat progress/last_notice.txt
+fi
+
 printf "\n[github push health]\n"
 echo "auth setup script: scripts/setup_server_github_auth.sh"
 echo "push check script: scripts/check_server_github_push.sh"
+echo "dataset finalize script: scripts/finalize_dataset_and_publish.sh"
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   echo "origin: $(git remote get-url origin 2>/dev/null || true)"
 fi
 
 printf "\n[next suggested command]\n"
 echo "bash scripts/run_ade20k_rwtd.sh --profile server_rtx3090_fast --out /path/to/output --skip_download"
+echo "bash scripts/finalize_dataset_and_publish.sh --dataset_id <dataset_id> --run_dir <dataset_run_dir> --public_repo /home/<user>/rwtd_miner_public_site"
 
 printf "\n[codex bootstrap prompt]\n"
 cat <<'EOF'

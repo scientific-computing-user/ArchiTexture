@@ -65,6 +65,19 @@ After run completes, open:
 1. `server_rtx3090_fast` for quick validation and threshold checks.
 2. `server_rtx3090_quality` for better final ranking quality.
 
+## 6) Publish after each dataset finishes
+
+Run this after each dataset run directory is ready:
+
+```bash
+bash scripts/finalize_dataset_and_publish.sh \
+  --dataset_id <dataset_id> \
+  --run_dir <dataset_run_dir> \
+  --public_repo /home/<user>/rwtd_miner_public_site
+```
+
+This updates git and website incrementally so progress is reviewable while long runs continue.
+
 ## Notes
 - Profiles are overlays under `configs/profiles/` merged with `config.yaml`.
 - Stage B (CLIP) and Stage D (VLM) are enabled in both server profiles.

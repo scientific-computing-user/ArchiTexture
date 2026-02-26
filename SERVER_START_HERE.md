@@ -40,8 +40,12 @@ See `configs/datasets/non_ade20k_registry.yaml` for structured list, priority, a
 6. Run mining with server profile:
    - fast profile for first full sweep
    - quality profile for final rerank
-7. Merge outputs and regenerate review website.
-8. Export selected subsets and manifests.
+7. After each dataset completes, publish progress immediately:
+   - run `scripts/finalize_dataset_and_publish.sh` for that dataset run dir
+   - commit/push private repo updates
+   - sync/push public review site repo when available
+8. Merge outputs and regenerate review website.
+9. Export selected subsets and manifests.
 
 ## Optimization policy (server)
 
@@ -59,4 +63,4 @@ See `configs/datasets/non_ade20k_registry.yaml` for structured list, priority, a
 - Combined manifest includes final score + stage traceability.
 - Review website renders original/mask/overlay for accepted and rejected samples.
 - Top subsets exported with deterministic splits.
-
+- Progress board (`progress/datasets_progress_latest.md`) has one completion row per finished dataset.
