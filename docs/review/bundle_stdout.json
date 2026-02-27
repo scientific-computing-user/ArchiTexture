@@ -1,7 +1,7 @@
 {
-  "source": "/home/galoren/rwtd_runs/pascal_context_overlay_vlm_20260227_0739/batches/batch_00000/review",
+  "source": "/home/galoren/rwtd_runs/bsds500_overlayfull_vlm_20260227_050545/batches/batch_00000/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
-  "n_input": 11321,
+  "n_input": 500,
   "n_existing": 2796,
   "n_existing_replaced_for_dataset": 260,
   "n_new_selected": 260,
