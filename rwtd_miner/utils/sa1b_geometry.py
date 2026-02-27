@@ -17,6 +17,12 @@ except Exception:  # pragma: no cover
     mask_utils = None
 
 
+# Caches make shard-style COCO annotation refs practical:
+# many rows point to the same large JSON file.
+_JSON_FILE_CACHE: dict[str, Any] = {}
+_COCO_LOOKUP_CACHE: dict[int, tuple[dict[str, Any], dict[Any, tuple[int | None, int | None]], dict[Any, list[dict[str, Any]]]]] = {}
+
+
 def _color_for_id(idx: int) -> tuple[int, int, int]:
     seed = (1103515245 * (idx + 12345) + 12345) & 0x7FFFFFFF
     r = 48 + (seed % 192)
@@ -28,10 +34,19 @@ def _color_for_id(idx: int) -> tuple[int, int, int]:
 def _read_annotation_payload(annotation_ref: str) -> dict[str, Any] | None:
     if not annotation_ref:
         return None
+
+    def _read_json_cached(path: Path) -> Any:
+        key = str(path)
+        payload = _JSON_FILE_CACHE.get(key)
+        if payload is None:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            _JSON_FILE_CACHE[key] = payload
+        return payload
+
     if "::" in annotation_ref:
         p, idx = annotation_ref.rsplit("::", 1)
         path = Path(p)
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = _read_json_cached(path)
         if idx.isdigit() and isinstance(payload, list):
             i = int(idx)
             if 0 <= i < len(payload) and isinstance(payload[i], dict):
@@ -40,8 +55,56 @@ def _read_annotation_payload(annotation_ref: str) -> dict[str, Any] | None:
             return payload
         return None
     path = Path(annotation_ref)
-    payload = json.loads(path.read_text(encoding="utf-8"))
+    payload = _read_json_cached(path)
     return payload if isinstance(payload, dict) else None
+
+
+def _build_coco_lookup(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[Any, tuple[int | None, int | None]], dict[Any, list[dict[str, Any]]]]:
+    pid = id(payload)
+    cached = _COCO_LOOKUP_CACHE.get(pid)
+    if cached is not None:
+        return cached
+
+    key_to_lookup: dict[str, Any] = {}
+    dims_by_lookup: dict[Any, tuple[int | None, int | None]] = {}
+    anns_by_lookup: dict[Any, list[dict[str, Any]]] = {}
+
+    images = payload.get("images", [])
+    anns = payload.get("annotations", [])
+
+    if isinstance(images, list):
+        for im in images:
+            if not isinstance(im, dict):
+                continue
+            lookup = im.get("id") if im.get("id") is not None else im.get("image_id")
+            if lookup is None:
+                continue
+            width = int(im.get("width")) if im.get("width") else None
+            height = int(im.get("height")) if im.get("height") else None
+            dims_by_lookup[lookup] = (width, height)
+
+            candidates: list[str] = [str(lookup)]
+            if im.get("image_id") is not None:
+                candidates.append(str(im.get("image_id")))
+            file_name = im.get("file_name")
+            if file_name:
+                candidates.append(Path(str(file_name)).stem)
+            for cand in candidates:
+                if cand and cand not in key_to_lookup:
+                    key_to_lookup[cand] = lookup
+
+    if isinstance(anns, list):
+        for ann in anns:
+            if not isinstance(ann, dict):
+                continue
+            lookup = ann.get("image_id")
+            if lookup is None:
+                continue
+            anns_by_lookup.setdefault(lookup, []).append(ann)
+
+    cached = (key_to_lookup, dims_by_lookup, anns_by_lookup)
+    _COCO_LOOKUP_CACHE[pid] = cached
+    return cached
 
 
 def _extract_annotations_for_image(
@@ -59,30 +122,37 @@ def _extract_annotations_for_image(
 
     # COCO-style shard payload.
     if isinstance(payload.get("images"), list) and isinstance(payload.get("annotations"), list):
-        images = payload.get("images", [])
-        anns = payload.get("annotations", [])
+        key_to_lookup, dims_by_lookup, anns_by_lookup = _build_coco_lookup(payload)
         image_stem = image_path.stem
-        image_lookup = None
-        width = None
-        height = None
-        for im in images:
-            if not isinstance(im, dict):
-                continue
-            candidates = []
-            if im.get("id") is not None:
-                candidates.append(str(im.get("id")))
-            if im.get("image_id") is not None:
-                candidates.append(str(im.get("image_id")))
-            if im.get("file_name"):
-                candidates.append(Path(str(im.get("file_name"))).stem)
-            if image_id in candidates or image_stem in candidates:
-                image_lookup = im.get("id") if im.get("id") is not None else im.get("image_id")
-                width = int(im.get("width")) if im.get("width") else None
-                height = int(im.get("height")) if im.get("height") else None
-                break
+        image_lookup = key_to_lookup.get(image_id) or key_to_lookup.get(image_stem)
         if image_lookup is None:
             return [], None, None
-        selected = [a for a in anns if isinstance(a, dict) and a.get("image_id") == image_lookup]
+        width, height = dims_by_lookup.get(image_lookup, (None, None))
+        selected = anns_by_lookup.get(image_lookup, [])
+
+        # Panoptic JSON stores segments under one annotation row per image.
+        # Flatten into pseudo-annotations so downstream geometry/scoring can reuse
+        # one code path. Segmentation masks may be missing if panoptic PNGs are not
+        # available; in that case decode just skips those entries.
+        if selected and all(isinstance(a, dict) and isinstance(a.get("segments_info"), list) for a in selected):
+            flattened: list[dict[str, Any]] = []
+            for ann in selected:
+                segs = ann.get("segments_info", [])
+                if not isinstance(segs, list):
+                    continue
+                for seg in segs:
+                    if not isinstance(seg, dict):
+                        continue
+                    flattened.append(
+                        {
+                            "area": seg.get("area", 0.0),
+                            "bbox": seg.get("bbox", [0, 0, 0, 0]),
+                            "category_id": seg.get("category_id"),
+                            "segmentation": seg.get("segmentation", {}),
+                        }
+                    )
+            selected = flattened
+
         return selected, width, height
 
     return [], None, None

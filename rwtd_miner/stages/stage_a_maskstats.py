@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import json
 import math
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor
+from itertools import repeat
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,11 @@ try:
     from pycocotools import mask as mask_utils
 except Exception:  # pragma: no cover
     mask_utils = None
+
+
+# Per-process caches. Each worker process keeps its own copy.
+_JSON_FILE_CACHE: dict[str, Any] = {}
+_COCO_LOOKUP_CACHE: dict[int, tuple[dict[str, Any], dict[Any, tuple[int | None, int | None]], dict[Any, list[dict[str, Any]]]]] = {}
 
 
 def _decode_uncompressed_rle_area(seg: dict) -> float | None:
@@ -93,27 +99,32 @@ def _extract_annotations_from_payload(payload: Any, image_id: str, image_path: s
             return payload.get("annotations", []), int(w) if w else None, int(h) if h else None
 
         if isinstance(payload.get("images"), list) and isinstance(payload.get("annotations"), list):
-            images = payload["images"]
-            annotations = payload["annotations"]
-            image_id_lookup = None
-            width = None
-            height = None
-            for im in images:
-                if not isinstance(im, dict):
-                    continue
-                key_candidates = [
-                    str(im.get("id")) if im.get("id") is not None else None,
-                    str(im.get("image_id")) if im.get("image_id") is not None else None,
-                    Path(str(im.get("file_name", ""))).stem if im.get("file_name") else None,
-                ]
-                if image_id in key_candidates or image_stem in key_candidates:
-                    image_id_lookup = im.get("id") if im.get("id") is not None else im.get("image_id")
-                    width = int(im.get("width")) if im.get("width") else None
-                    height = int(im.get("height")) if im.get("height") else None
-                    break
+            key_to_lookup, dims_by_lookup, anns_by_lookup = _build_coco_lookup(payload)
+            image_id_lookup = key_to_lookup.get(image_id) or key_to_lookup.get(image_stem)
             if image_id_lookup is None:
                 return [], None, None
-            selected = [a for a in annotations if isinstance(a, dict) and a.get("image_id") == image_id_lookup]
+            width, height = dims_by_lookup.get(image_id_lookup, (None, None))
+            selected = anns_by_lookup.get(image_id_lookup, [])
+
+            if selected and all(isinstance(a, dict) and isinstance(a.get("segments_info"), list) for a in selected):
+                flattened: list[dict] = []
+                for ann in selected:
+                    segs = ann.get("segments_info", [])
+                    if not isinstance(segs, list):
+                        continue
+                    for seg in segs:
+                        if not isinstance(seg, dict):
+                            continue
+                        flattened.append(
+                            {
+                                "area": seg.get("area", 0.0),
+                                "bbox": seg.get("bbox", [0, 0, 0, 0]),
+                                "category_id": seg.get("category_id"),
+                                "segmentation": seg.get("segmentation"),
+                            }
+                        )
+                selected = flattened
+
             return selected, width, height
 
         if isinstance(payload.get("data"), list):
@@ -169,17 +180,73 @@ def _stage_a_rwtd_score(
 
 
 def _annotation_payload_from_ref(annotation_ref: str) -> Any:
+    def _read_json_cached(path: Path) -> Any:
+        key = str(path)
+        payload = _JSON_FILE_CACHE.get(key)
+        if payload is None:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            _JSON_FILE_CACHE[key] = payload
+        return payload
+
     if "::" in annotation_ref:
         path_str, idx_str = annotation_ref.rsplit("::", 1)
         path = Path(path_str)
-        payload = json.loads(path.read_text(encoding="utf-8"))
+        payload = _read_json_cached(path)
         if idx_str.isdigit() and isinstance(payload, list):
             idx = int(idx_str)
             if 0 <= idx < len(payload):
                 return payload[idx]
         return payload
     path = Path(annotation_ref)
-    return json.loads(path.read_text(encoding="utf-8"))
+    return _read_json_cached(path)
+
+
+def _build_coco_lookup(payload: dict[str, Any]) -> tuple[dict[str, Any], dict[Any, tuple[int | None, int | None]], dict[Any, list[dict[str, Any]]]]:
+    pid = id(payload)
+    cached = _COCO_LOOKUP_CACHE.get(pid)
+    if cached is not None:
+        return cached
+
+    key_to_lookup: dict[str, Any] = {}
+    dims_by_lookup: dict[Any, tuple[int | None, int | None]] = {}
+    anns_by_lookup: dict[Any, list[dict[str, Any]]] = {}
+
+    images = payload.get("images", [])
+    anns = payload.get("annotations", [])
+
+    if isinstance(images, list):
+        for im in images:
+            if not isinstance(im, dict):
+                continue
+            lookup = im.get("id") if im.get("id") is not None else im.get("image_id")
+            if lookup is None:
+                continue
+            width = int(im.get("width")) if im.get("width") else None
+            height = int(im.get("height")) if im.get("height") else None
+            dims_by_lookup[lookup] = (width, height)
+
+            candidates: list[str] = [str(lookup)]
+            if im.get("image_id") is not None:
+                candidates.append(str(im.get("image_id")))
+            file_name = im.get("file_name")
+            if file_name:
+                candidates.append(Path(str(file_name)).stem)
+            for cand in candidates:
+                if cand and cand not in key_to_lookup:
+                    key_to_lookup[cand] = lookup
+
+    if isinstance(anns, list):
+        for ann in anns:
+            if not isinstance(ann, dict):
+                continue
+            lookup = ann.get("image_id")
+            if lookup is None:
+                continue
+            anns_by_lookup.setdefault(lookup, []).append(ann)
+
+    cached = (key_to_lookup, dims_by_lookup, anns_by_lookup)
+    _COCO_LOOKUP_CACHE[pid] = cached
+    return cached
 
 
 def _worker(row: dict[str, Any], cfg: dict[str, Any]) -> dict[str, Any]:
@@ -304,9 +371,9 @@ def run_stage_a(batch_df: pd.DataFrame, cfg: dict[str, Any], workers: int) -> pd
     results: list[dict[str, Any]] = []
 
     with ProcessPoolExecutor(max_workers=max(1, workers)) as ex:
-        futures = [ex.submit(_worker, row, cfg) for row in rows]
-        for f in tqdm(as_completed(futures), total=len(futures), desc="stageA_maskstats", unit="img"):
-            results.append(f.result())
+        mapped = ex.map(_worker, rows, repeat(cfg), chunksize=64)
+        for out_row in tqdm(mapped, total=len(rows), desc="stageA_maskstats", unit="img"):
+            results.append(out_row)
 
     out = pd.DataFrame(results)
     return batch_df.merge(out, on="image_id", how="left")
