@@ -1,5 +1,5 @@
 {
-  "source": "/home/galoren/rwtd_runs/bsds500_ingest_smoke_20260227_0356/batches/batch_00000/review",
+  "source": "/home/galoren/rwtd_runs/bsds500_matfix_vlm_20260227_044449/batches/batch_00000/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
   "n_input": 500,
   "n_existing": 2796,
@@ -13,17 +13,17 @@
     "original": 260
   },
   "by_status": {
-    "selected": 979,
-    "rejected": 1582,
-    "borderline": 495
+    "selected": 875,
+    "rejected": 1738,
+    "borderline": 443
   },
   "by_dataset": {
     "coco_stuff": 260,
     "pascal_context": 260,
-    "bsds500": 260,
     "coco_natural_views": 260,
     "coco_panoptic": 260,
     "ade20k": 1500,
-    "rwtd_reference": 256
+    "rwtd_reference": 256,
+    "bsds500": 260
   }
 }
