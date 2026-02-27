@@ -1,7 +1,7 @@
 {
-  "source": "/home/galoren/rwtd_runs/coco_natural_views_vlm_20260227_0012/batches/batch_00003/review",
+  "source": "/home/galoren/rwtd_runs/coco_stuff_vlm_coco_ultra_strict_v3_20260226_2230/batches/batch_00000/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
-  "n_input": 19636,
+  "n_input": 329,
   "n_existing": 2796,
   "n_existing_replaced_for_dataset": 260,
   "n_new_selected": 260,
