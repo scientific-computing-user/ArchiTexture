@@ -1,7 +1,7 @@
 {
-  "source": "/home/galoren/rwtd_runs/coco_natural_views_vlm_20260227_0012/batches/batch_00003/review",
+  "source": "/home/galoren/rwtd_runs/pascal_context_overlay_vlm_20260227_0739/batches/batch_00000/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
-  "n_input": 19636,
+  "n_input": 11321,
   "n_existing": 2796,
   "n_existing_replaced_for_dataset": 260,
   "n_new_selected": 260,
@@ -13,15 +13,15 @@
     "original": 260
   },
   "by_status": {
-    "rejected": 1903,
     "selected": 763,
+    "rejected": 1903,
     "borderline": 390
   },
   "by_dataset": {
-    "pascal_context": 260,
     "ade20k": 1500,
     "rwtd_reference": 256,
     "coco_stuff": 260,
+    "pascal_context": 260,
     "bsds500": 260,
     "coco_natural_views": 260,
     "coco_panoptic": 260
