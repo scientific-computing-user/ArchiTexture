@@ -122,6 +122,13 @@ bash scripts/prepare_non_ade20k_server.sh --root /data/rwtd_datasets --mode plan
 bash scripts/prepare_non_ade20k_server.sh --root /data/rwtd_datasets --mode download_public
 ```
 
+Alternative public sources for Pascal Context + BSDS500:
+
+```bash
+bash scripts/prepare_pascal_bsds_alternatives.sh --root /home/galoren/data/rwtd_datasets --mode probe
+bash scripts/prepare_pascal_bsds_alternatives.sh --root /home/galoren/data/rwtd_datasets --mode download
+```
+
 Publish progress after each finished dataset (website + git updates):
 
 ```bash

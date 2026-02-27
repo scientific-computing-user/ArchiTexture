@@ -46,13 +46,25 @@ datasets:
     approx_images: 10000
     access_mode: manual
     target_dir: /data/rwtd_datasets/pascal_context
-    notes: "VOC + context labels, source-dependent packaging."
+    notes: "VOC + context labels. Alternative scripted source available via scripts/prepare_pascal_bsds_alternatives.sh."
     expected_layout:
       - images/
       - labels/
 
-  - id: coco_panoptic
+  - id: bsds500
     priority: 6
+    approx_images: 500
+    access_mode: http_public
+    target_dir: /data/rwtd_datasets/bsds500
+    notes: "Public Berkeley BSR archive. Scripted source available via scripts/prepare_pascal_bsds_alternatives.sh."
+    expected_layout:
+      - images/train/
+      - images/val/
+      - images/test/
+      - labels/
+
+  - id: coco_panoptic
+    priority: 7
     approx_images: 123000
     access_mode: http_public
     target_dir: /data/rwtd_datasets/coco
@@ -62,7 +74,7 @@ datasets:
       - raw/annotations/panoptic_*/
 
   - id: idd_segmentation
-    priority: 7
+    priority: 8
     approx_images: 10000
     access_mode: gated_manual
     target_dir: /data/rwtd_datasets/idd
@@ -72,7 +84,7 @@ datasets:
       - labels/
 
   - id: kitti_materials
-    priority: 8
+    priority: 9
     approx_images: 2500
     access_mode: manual
     target_dir: /data/rwtd_datasets/kitti_materials
@@ -82,7 +94,7 @@ datasets:
       - labels/
 
   - id: sun_rgbd
-    priority: 9
+    priority: 10
     approx_images: 10335
     access_mode: manual
     target_dir: /data/rwtd_datasets/sunrgbd
@@ -92,7 +104,7 @@ datasets:
       - labels/
 
   - id: nyudv2
-    priority: 10
+    priority: 11
     approx_images: 1449
     access_mode: manual
     target_dir: /data/rwtd_datasets/nyudv2
@@ -102,7 +114,7 @@ datasets:
       - labels/
 
   - id: camvid
-    priority: 11
+    priority: 12
     approx_images: 701
     access_mode: manual
     target_dir: /data/rwtd_datasets/camvid
@@ -112,7 +124,7 @@ datasets:
       - labels/
 
   - id: wilddash2
-    priority: 12
+    priority: 13
     approx_images: 425
     access_mode: manual
     target_dir: /data/rwtd_datasets/wilddash2

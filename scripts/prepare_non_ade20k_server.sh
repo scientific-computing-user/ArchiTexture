@@ -58,6 +58,7 @@ plan_line "mapillary_vistas_v2" "gated_manual" "$ROOT/mapillary_vistas" "Accept 
 plan_line "bdd100k_seg" "gated_manual" "$ROOT/bdd100k" "Account login + segmented labels pack."
 plan_line "cityscapes" "gated_manual" "$ROOT/cityscapes" "Official account required."
 plan_line "pascal_context" "manual" "$ROOT/pascal_context" "Context labels vary by source; place VOC+context files."
+plan_line "bsds500" "http_public" "$ROOT/bsds500" "Use scripts/prepare_pascal_bsds_alternatives.sh for Berkeley BSR source."
 plan_line "idd_segmentation" "gated_manual" "$ROOT/idd" "Official download request flow."
 plan_line "kitti_materials" "manual" "$ROOT/kitti_materials" "Use your preferred mirror and keep metadata."
 plan_line "sun_rgbd" "manual" "$ROOT/sunrgbd" "RGB + segmentation labels subset only."
@@ -68,7 +69,7 @@ plan_line "apollo_scape" "gated_manual" "$ROOT/apolloscape" "Optional extension 
 
 echo
 log "Creating expected folder layout"
-for d in coco mapillary_vistas bdd100k cityscapes pascal_context idd kitti_materials sunrgbd nyudv2 camvid wilddash2 apolloscape; do
+for d in coco mapillary_vistas bdd100k cityscapes pascal_context bsds500 idd kitti_materials sunrgbd nyudv2 camvid wilddash2 apolloscape; do
   mkdir -p "$ROOT/$d"
 done
 
