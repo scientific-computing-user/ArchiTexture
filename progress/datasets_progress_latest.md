@@ -2,6 +2,7 @@
 
 | finished_at_utc | dataset_id | source_samples | selected | borderline | rejected |
 |---|---:|---:|---:|---:|---:|
+| 2026-02-27T02:16:13Z | coco_natural_views | 19636 | 2 | 0 | 19634 |
 | 2026-02-27T00:09:00Z | coco_panoptic | 19636 | 0 | 0 | 19636 |
 | 2026-02-26T22:38:44Z | coco_stuff | 329 | 4 | 1 | 324 |
 | 2026-02-26T22:26:11Z | coco_stuff | 329 | 7 | 1 | 321 |
