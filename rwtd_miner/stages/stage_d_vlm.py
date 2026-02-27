@@ -24,6 +24,7 @@ ALLOWED_FLAGS = {
     "no_clear_texture_boundary",
     "low_texture_content",
     "text_overlay_or_ui",
+    "salient_semantic_subject",
 }
 
 
@@ -33,25 +34,30 @@ class VLMScore:
     decision: str | None
     main_reason: str | None
     flags: list[str]
+    overlay_score_0_100: int | None = None
+    overlay_pass: bool | None = None
+    overlay_reason: str | None = None
 
 
 class BaseVLMScorer:
-    def score_image_vlm(self, image_path: Path) -> VLMScore:
+    def score_image_vlm(self, image_path: Path, overlay_path: Path | None = None) -> VLMScore:
         raise NotImplementedError
 
 
 class StubVLMScorer(BaseVLMScorer):
-    def score_image_vlm(self, image_path: Path) -> VLMScore:
-        _ = image_path
+    def score_image_vlm(self, image_path: Path, overlay_path: Path | None = None) -> VLMScore:
+        _ = image_path, overlay_path
         return VLMScore(score_0_100=None, decision=None, main_reason=None, flags=[])
 
 
 class ExternalCommandVLMScorer(BaseVLMScorer):
-    def __init__(self, command: str, prompt: str):
+    def __init__(self, command: str, prompt: str, overlay_prompt: str, overlay_score_min: int):
         self.command = command
         self.prompt = prompt
+        self.overlay_prompt = overlay_prompt
+        self.overlay_score_min = int(overlay_score_min)
 
-    def score_image_vlm(self, image_path: Path) -> VLMScore:
+    def score_image_vlm(self, image_path: Path, overlay_path: Path | None = None) -> VLMScore:
         payload = {"image_path": str(image_path), "prompt": self.prompt}
         proc = subprocess.run(
             shlex.split(self.command),
@@ -67,7 +73,31 @@ class ExternalCommandVLMScorer(BaseVLMScorer):
         if not raw:
             raise RuntimeError("External VLM command returned empty output")
         parsed = json.loads(raw)
-        return _normalize_vlm_score(parsed)
+        out = _normalize_vlm_score(parsed)
+
+        if overlay_path is not None and overlay_path.exists():
+            overlay_payload = {
+                "image_path": str(overlay_path),
+                "prompt": self.overlay_prompt or self.prompt,
+            }
+            proc_ov = subprocess.run(
+                shlex.split(self.command),
+                input=json.dumps(overlay_payload, ensure_ascii=False),
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            if proc_ov.returncode == 0 and proc_ov.stdout.strip():
+                parsed_ov = json.loads(proc_ov.stdout.strip())
+                ov = _normalize_vlm_score(parsed_ov)
+                ov_score = ov.score_0_100
+                ov_pass = bool(ov_score is not None and ov_score >= int(self.overlay_score_min))
+                out.overlay_score_0_100 = ov_score
+                out.overlay_pass = ov_pass
+                out.overlay_reason = ov.main_reason
+                if ov_pass is False and "no_clear_texture_boundary" not in out.flags:
+                    out.flags.append("no_clear_texture_boundary")
+        return out
 
 
 def _resolve_device(pref: str) -> str:
@@ -184,6 +214,7 @@ def _normalize_vlm_score(parsed: dict[str, Any]) -> VLMScore:
 
 def _apply_hard_decision_rules(result: VLMScore, cfg: dict[str, Any]) -> VLMScore:
     force_obj_not_match = bool(cfg.get("force_not_match_on_object_centric", False))
+    force_semantic_not_match = bool(cfg.get("force_not_match_on_salient_semantic_subject", True))
     if force_obj_not_match and ("object_centric" in (result.flags or [])):
         score = result.score_0_100
         cap = int(cfg.get("object_centric_score_cap", 59))
@@ -194,7 +225,83 @@ def _apply_hard_decision_rules(result: VLMScore, cfg: dict[str, Any]) -> VLMScor
             decision="not_match",
             main_reason=result.main_reason,
             flags=result.flags,
+            overlay_score_0_100=result.overlay_score_0_100,
+            overlay_pass=result.overlay_pass,
+            overlay_reason=result.overlay_reason,
         )
+    if force_semantic_not_match and ("salient_semantic_subject" in (result.flags or [])):
+        score = result.score_0_100
+        cap = int(cfg.get("salient_semantic_subject_score_cap", 45))
+        if score is not None:
+            score = min(int(score), cap)
+        return VLMScore(
+            score_0_100=score,
+            decision="not_match",
+            main_reason=result.main_reason,
+            flags=result.flags,
+            overlay_score_0_100=result.overlay_score_0_100,
+            overlay_pass=result.overlay_pass,
+            overlay_reason=result.overlay_reason,
+        )
+
+    overlay_enabled = bool(cfg.get("overlay_vlm_validation_enabled", True))
+    overlay_required = bool(cfg.get("overlay_vlm_validation_required", True))
+    if overlay_enabled:
+        ov_pass = result.overlay_pass
+        if ov_pass is False:
+            score = result.score_0_100
+            cap = int(cfg.get("overlay_fail_score_cap", 55))
+            penalty = int(cfg.get("overlay_penalty_on_fail", 24))
+            if score is not None:
+                score = min(int(score), cap)
+                score = max(0, score - penalty)
+            flags = list(result.flags or [])
+            if "no_clear_texture_boundary" not in flags:
+                flags.append("no_clear_texture_boundary")
+            reason = result.main_reason or "overlay failed"
+            if result.overlay_reason:
+                reason = f"{reason}; overlay: {result.overlay_reason}"
+            return VLMScore(
+                score_0_100=score,
+                decision="not_match",
+                main_reason=reason,
+                flags=flags,
+                overlay_score_0_100=result.overlay_score_0_100,
+                overlay_pass=result.overlay_pass,
+                overlay_reason=result.overlay_reason,
+            )
+        if overlay_required and ov_pass is None:
+            score = result.score_0_100
+            cap = int(cfg.get("overlay_missing_score_cap", 45))
+            if score is not None:
+                score = min(int(score), cap)
+            flags = list(result.flags or [])
+            if "no_clear_texture_boundary" not in flags:
+                flags.append("no_clear_texture_boundary")
+            reason = result.main_reason or "overlay missing"
+            return VLMScore(
+                score_0_100=score,
+                decision="not_match",
+                main_reason=f"{reason}; missing overlay validation",
+                flags=flags,
+                overlay_score_0_100=result.overlay_score_0_100,
+                overlay_pass=False,
+                overlay_reason=result.overlay_reason or "missing overlay",
+            )
+        if ov_pass is True:
+            bonus = int(cfg.get("overlay_bonus_on_pass", 6))
+            score = result.score_0_100
+            if score is not None:
+                score = min(100, int(score) + bonus)
+            return VLMScore(
+                score_0_100=score,
+                decision=result.decision,
+                main_reason=result.main_reason,
+                flags=result.flags,
+                overlay_score_0_100=result.overlay_score_0_100,
+                overlay_pass=result.overlay_pass,
+                overlay_reason=result.overlay_reason,
+            )
     return result
 
 
@@ -236,6 +343,8 @@ class HfVlmChatScorer(BaseVLMScorer):
         self.temperature = float(cfg.get("hf_vlm_temperature", 0.0))
         self.load_in_4bit = bool(cfg.get("hf_vlm_load_in_4bit", True))
         self.prompt = str(cfg.get("prompt", "")).strip()
+        self.overlay_prompt = str(cfg.get("overlay_prompt", "")).strip()
+        self.overlay_score_min = int(cfg.get("overlay_score_min", 65))
         self._pipe = None
         self._init_pipe()
 
@@ -306,7 +415,7 @@ class HfVlmChatScorer(BaseVLMScorer):
             raise RuntimeError("HF VLM chat backend produced empty output")
         return txt
 
-    def score_image_vlm(self, image_path: Path) -> VLMScore:
+    def score_image_vlm(self, image_path: Path, overlay_path: Path | None = None) -> VLMScore:
         strict_prompt = (
             f"{self.prompt}\n\n"
             "Return only valid JSON with fields: score_0_100, decision, main_reason, flags. "
@@ -314,7 +423,25 @@ class HfVlmChatScorer(BaseVLMScorer):
         )
         raw_text = self._run_inference(image_path=image_path, prompt=strict_prompt)
         parsed = _extract_first_json_object(raw_text)
-        return _normalize_vlm_score(parsed)
+        out = _normalize_vlm_score(parsed)
+
+        if overlay_path is not None and overlay_path.exists():
+            ov_prompt_base = self.overlay_prompt or self.prompt
+            ov_prompt = (
+                f"{ov_prompt_base}\n\n"
+                "This is a texture-boundary overlay visualization. "
+                "Judge only boundary quality: coarse, coherent, region-level transitions (2-4 regions). "
+                "Return only valid JSON with fields: score_0_100, decision, main_reason, flags."
+            )
+            raw_ov = self._run_inference(image_path=overlay_path, prompt=ov_prompt)
+            parsed_ov = _extract_first_json_object(raw_ov)
+            ov = _normalize_vlm_score(parsed_ov)
+            out.overlay_score_0_100 = ov.score_0_100
+            out.overlay_pass = bool(ov.score_0_100 is not None and int(ov.score_0_100) >= int(self.overlay_score_min))
+            out.overlay_reason = ov.main_reason
+            if out.overlay_pass is False and "no_clear_texture_boundary" not in out.flags:
+                out.flags.append("no_clear_texture_boundary")
+        return out
 
 
 class HfBlipVqaRubricScorer(BaseVLMScorer):
@@ -341,7 +468,81 @@ class HfBlipVqaRubricScorer(BaseVLMScorer):
         text = self.processor.decode(out[0], skip_special_tokens=True)
         return str(text).strip().lower()
 
-    def score_image_vlm(self, image_path: Path) -> VLMScore:
+    def _score_overlay_texture_boundary(self, overlay_image: Image.Image) -> tuple[int | None, bool | None, str | None, list[str]]:
+        q_clear = (
+            "In this texture-boundary overlay, are there clear coherent boundaries between large regions? "
+            "Answer yes or no."
+        )
+        q_coarse = (
+            "Are the boundaries mostly coarse and region-level (not many tiny fragmented lines)? "
+            "Answer yes or no."
+        )
+        q_regions = "How many large regions are separated by boundaries in this overlay? answer a number from 1 to 6."
+        q_noise = (
+            "Does this overlay look noisy or over-segmented with too many tiny boundary fragments? "
+            "Answer yes or no."
+        )
+
+        clear_ans = self._ask(overlay_image, q_clear)
+        coarse_ans = self._ask(overlay_image, q_coarse)
+        regions_ans = self._ask(overlay_image, q_regions)
+        noise_ans = self._ask(overlay_image, q_noise)
+
+        is_clear = _parse_yes_no(clear_ans)
+        is_coarse = _parse_yes_no(coarse_ans)
+        region_count = _parse_region_count(regions_ans)
+        is_noisy = _parse_yes_no(noise_ans)
+
+        ov_score = 50.0
+        ov_flags: list[str] = []
+        reasons: list[str] = []
+
+        if is_clear is True:
+            ov_score += 22.0
+            reasons.append("clear boundaries")
+        elif is_clear is False:
+            ov_score -= 28.0
+            ov_flags.append("no_clear_texture_boundary")
+            reasons.append("unclear boundaries")
+
+        if is_coarse is True:
+            ov_score += 16.0
+            reasons.append("coarse region-level boundaries")
+        elif is_coarse is False:
+            ov_score -= 20.0
+            ov_flags.append("no_clear_texture_boundary")
+            reasons.append("too fine/fragmented boundaries")
+
+        if region_count is not None:
+            if 2 <= region_count <= 4:
+                ov_score += 16.0
+                reasons.append(f"{region_count} large regions")
+            elif region_count <= 1:
+                ov_score -= 14.0
+                ov_flags.append("no_clear_texture_boundary")
+            else:
+                ov_score -= 12.0
+                ov_flags.append("too_many_objects")
+
+        if is_noisy is True:
+            ov_score -= 14.0
+            ov_flags.append("no_clear_texture_boundary")
+            reasons.append("noisy/over-segmented")
+        elif is_noisy is False:
+            ov_score += 6.0
+
+        ov_score_i = int(max(0, min(100, round(ov_score))))
+        ov_min = int(self.cfg.get("overlay_score_min", 65))
+        ov_pass = bool(ov_score_i >= ov_min)
+        ov_reason = ", ".join(reasons[:3]) if reasons else "overlay validation unavailable"
+
+        dedup_flags: list[str] = []
+        for f in ov_flags:
+            if f in ALLOWED_FLAGS and f not in dedup_flags:
+                dedup_flags.append(f)
+        return ov_score_i, ov_pass, ov_reason, dedup_flags
+
+    def score_image_vlm(self, image_path: Path, overlay_path: Path | None = None) -> VLMScore:
         with Image.open(image_path) as im:
             image = im.convert("RGB")
 
@@ -349,18 +550,24 @@ class HfBlipVqaRubricScorer(BaseVLMScorer):
         q_texture = "Are most pixels textured surfaces or materials rather than distinct objects? Answer yes or no."
         q_boundary = "Is there a clear boundary or transition between two or more texture/material regions? Answer yes or no."
         q_object = "Is the image dominated by a single salient object such as person, car, animal, or product? Answer yes or no."
+        q_semantic_subject = (
+            "Are prominent animals, people, vehicles, or other clearly recognizable objects visually salient in this image? "
+            "Answer yes or no."
+        )
         q_regions = "How many large texture/material regions are visible? answer a number from 1 to 5."
 
         real_ans = self._ask(image, q_real)
         texture_ans = self._ask(image, q_texture)
         boundary_ans = self._ask(image, q_boundary)
         object_ans = self._ask(image, q_object)
+        semantic_subject_ans = self._ask(image, q_semantic_subject)
         regions_ans = self._ask(image, q_regions)
 
         is_real = _parse_yes_no(real_ans)
         is_texture_dom = _parse_yes_no(texture_ans)
         has_boundary = _parse_yes_no(boundary_ans)
         object_dominant = _parse_yes_no(object_ans)
+        has_salient_semantic_subject = _parse_yes_no(semantic_subject_ans)
         n_regions = _parse_region_count(regions_ans)
 
         flags: list[str] = []
@@ -399,6 +606,15 @@ class HfBlipVqaRubricScorer(BaseVLMScorer):
             score += 10.0
             reasons.append("not object-centric")
 
+        # Strongly reject explicit semantic subjects (animals/people/vehicles/products).
+        # Rare keep cases are handled later by strict override logic in final selection.
+        if has_salient_semantic_subject is True:
+            score -= 34.0
+            flags.extend(["salient_semantic_subject", "object_centric"])
+            reasons.append("prominent semantic subject")
+        elif has_salient_semantic_subject is False:
+            score += 4.0
+
         if n_regions is not None:
             if 2 <= n_regions <= 4:
                 score += 12.0
@@ -423,8 +639,27 @@ class HfBlipVqaRubricScorer(BaseVLMScorer):
             if f not in dedup_flags:
                 dedup_flags.append(f)
 
+        overlay_score_i: int | None = None
+        overlay_pass: bool | None = None
+        overlay_reason: str | None = None
+        if overlay_path is not None and overlay_path.exists():
+            with Image.open(overlay_path) as ov_im:
+                ov_image = ov_im.convert("RGB")
+            overlay_score_i, overlay_pass, overlay_reason, ov_flags = self._score_overlay_texture_boundary(ov_image)
+            for f in ov_flags:
+                if f not in dedup_flags:
+                    dedup_flags.append(f)
+
         reason = ", ".join(reasons[:3]) if reasons else "insufficient VLM signal"
-        return VLMScore(score_0_100=score_i, decision=decision, main_reason=reason, flags=dedup_flags)
+        return VLMScore(
+            score_0_100=score_i,
+            decision=decision,
+            main_reason=reason,
+            flags=dedup_flags,
+            overlay_score_0_100=overlay_score_i,
+            overlay_pass=overlay_pass,
+            overlay_reason=overlay_reason,
+        )
 
 
 def build_vlm_scorer(cfg: dict[str, Any]) -> BaseVLMScorer:
@@ -436,7 +671,14 @@ def build_vlm_scorer(cfg: dict[str, Any]) -> BaseVLMScorer:
         if not command:
             raise ValueError("stage_d.external_command is required for external_command backend")
         prompt = str(cfg.get("prompt", ""))
-        return ExternalCommandVLMScorer(command=command, prompt=prompt)
+        overlay_prompt = str(cfg.get("overlay_prompt", "")).strip()
+        overlay_score_min = int(cfg.get("overlay_score_min", 65))
+        return ExternalCommandVLMScorer(
+            command=command,
+            prompt=prompt,
+            overlay_prompt=overlay_prompt,
+            overlay_score_min=overlay_score_min,
+        )
     if backend == "hf_blip_vqa":
         return HfBlipVqaRubricScorer(cfg=cfg)
     if backend == "hf_vlm_chat":
@@ -444,7 +686,29 @@ def build_vlm_scorer(cfg: dict[str, Any]) -> BaseVLMScorer:
     raise ValueError(f"Unsupported stage_d backend: {backend}")
 
 
-def run_stage_d(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
+def _resolve_overlay_path_for_row(row: pd.Series, batch_dir: Path | None = None) -> Path | None:
+    raw = str(row.get("geom_overlay_rel") or "").strip()
+    if not raw:
+        return None
+    p = Path(raw)
+    if p.is_absolute():
+        return p if p.exists() else None
+    if batch_dir is not None:
+        cand = (batch_dir / "review" / raw).resolve()
+        if cand.exists():
+            return cand
+    # Fallback for manifests that stored review-relative paths.
+    image_path = Path(str(row.get("image_path") or ""))
+    if image_path.exists():
+        # Try batch layout inferred from image path location.
+        # This only succeeds if geom_overlay_rel was actually a nearby path.
+        cand = (image_path.parent / raw).resolve()
+        if cand.exists():
+            return cand
+    return None
+
+
+def run_stage_d(df: pd.DataFrame, cfg: dict[str, Any], batch_dir: Path | None = None) -> pd.DataFrame:
     log = get_logger("stage_d")
     out = df.copy()
     out["stageD_score_0_100"] = None
@@ -452,6 +716,9 @@ def run_stage_d(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
     out["stageD_flags"] = None
     out["stageD_reason"] = None
     out["stageD_error"] = None
+    out["stageD_overlay_score_0_100"] = None
+    out["stageD_overlay_pass"] = None
+    out["stageD_overlay_reason"] = None
 
     scorer = build_vlm_scorer(cfg)
 
@@ -464,13 +731,17 @@ def run_stage_d(df: pd.DataFrame, cfg: dict[str, Any]) -> pd.DataFrame:
 
     for idx, row in tqdm(shortlist.iterrows(), total=len(shortlist), desc="stageD_vlm", unit="img"):
         image_path = Path(str(row["image_path"]))
+        overlay_path = _resolve_overlay_path_for_row(row, batch_dir=batch_dir)
         try:
-            result = scorer.score_image_vlm(image_path=image_path)
+            result = scorer.score_image_vlm(image_path=image_path, overlay_path=overlay_path)
             result = _apply_hard_decision_rules(result=result, cfg=cfg)
             out.at[idx, "stageD_score_0_100"] = result.score_0_100
             out.at[idx, "stageD_decision"] = result.decision
             out.at[idx, "stageD_flags"] = "|".join(result.flags)
             out.at[idx, "stageD_reason"] = result.main_reason
+            out.at[idx, "stageD_overlay_score_0_100"] = result.overlay_score_0_100
+            out.at[idx, "stageD_overlay_pass"] = result.overlay_pass
+            out.at[idx, "stageD_overlay_reason"] = result.overlay_reason
         except Exception as exc:
             out.at[idx, "stageD_error"] = str(exc)
             log.warning("VLM scoring failed for %s: %s", image_path, exc)

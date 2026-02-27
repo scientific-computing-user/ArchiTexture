@@ -10,6 +10,7 @@ from PIL import Image
 from tqdm import tqdm
 
 from rwtd_miner.utils.io import ensure_dir
+from rwtd_miner.utils.mat_annotations import load_mat_as_annotation_payload
 
 try:
     from pycocotools import mask as mask_utils
@@ -46,6 +47,9 @@ def _read_annotation_payload(annotation_ref: str) -> dict[str, Any] | None:
     if "::" in annotation_ref:
         p, idx = annotation_ref.rsplit("::", 1)
         path = Path(p)
+        if path.suffix.lower() == ".mat":
+            payload = load_mat_as_annotation_payload(path)
+            return payload if isinstance(payload, dict) else None
         payload = _read_json_cached(path)
         if idx.isdigit() and isinstance(payload, list):
             i = int(idx)
@@ -55,6 +59,9 @@ def _read_annotation_payload(annotation_ref: str) -> dict[str, Any] | None:
             return payload
         return None
     path = Path(annotation_ref)
+    if path.suffix.lower() == ".mat":
+        payload = load_mat_as_annotation_payload(path)
+        return payload if isinstance(payload, dict) else None
     payload = _read_json_cached(path)
     return payload if isinstance(payload, dict) else None
 
@@ -213,6 +220,13 @@ def _classify_segment(st: dict[str, float | bool]) -> int:
 
 
 def _decode_segmentation(segmentation: Any, *, width: int, height: int) -> np.ndarray | None:
+    if isinstance(segmentation, np.ndarray):
+        m = segmentation
+        if m.ndim == 3:
+            m = m[:, :, 0]
+        if m.ndim != 2:
+            return None
+        return (m > 0).astype(np.uint8)
     if mask_utils is None:
         return None
     if isinstance(segmentation, dict):
@@ -238,13 +252,10 @@ def _decode_segmentation(segmentation: Any, *, width: int, height: int) -> np.nd
     return None
 
 
-def _boundary_pixels_and_counts(region_map: np.ndarray, large_ids: set[int]) -> tuple[set[tuple[int, int]], dict[tuple[int, int], int]]:
-    h, w = region_map.shape
-    bp: set[tuple[int, int]] = set()
-    pair_counts: dict[tuple[int, int], int] = {}
-
+def _boundary_pair_pixels(region_map: np.ndarray, large_ids: set[int]) -> dict[tuple[int, int], set[tuple[int, int]]]:
+    pair_pixels: dict[tuple[int, int], set[tuple[int, int]]] = {}
     if not large_ids:
-        return bp, pair_counts
+        return pair_pixels
 
     # Horizontal neighbors.
     a = region_map[:, :-1]
@@ -255,9 +266,9 @@ def _boundary_pixels_and_counts(region_map: np.ndarray, large_ids: set[int]) -> 
         rb = int(b[y, x])
         if ra in large_ids and rb in large_ids and ra != rb:
             k = (ra, rb) if ra < rb else (rb, ra)
-            pair_counts[k] = pair_counts.get(k, 0) + 1
-            bp.add((int(y), int(x)))
-            bp.add((int(y), int(x + 1)))
+            pp = pair_pixels.setdefault(k, set())
+            pp.add((int(y), int(x)))
+            pp.add((int(y), int(x + 1)))
 
     # Vertical neighbors.
     a = region_map[:-1, :]
@@ -268,11 +279,69 @@ def _boundary_pixels_and_counts(region_map: np.ndarray, large_ids: set[int]) -> 
         rb = int(b[y, x])
         if ra in large_ids and rb in large_ids and ra != rb:
             k = (ra, rb) if ra < rb else (rb, ra)
-            pair_counts[k] = pair_counts.get(k, 0) + 1
-            bp.add((int(y), int(x)))
-            bp.add((int(y + 1), int(x)))
+            pp = pair_pixels.setdefault(k, set())
+            pp.add((int(y), int(x)))
+            pp.add((int(y + 1), int(x)))
 
-    return bp, pair_counts
+    return pair_pixels
+
+
+def _boundary_pixels_and_counts(region_map: np.ndarray, large_ids: set[int]) -> tuple[set[tuple[int, int]], dict[tuple[int, int], int]]:
+    pair_pixels = _boundary_pair_pixels(region_map, large_ids=large_ids)
+    boundary_pixels: set[tuple[int, int]] = set()
+    pair_counts: dict[tuple[int, int], int] = {}
+    for k, pix in pair_pixels.items():
+        pair_counts[k] = int(len(pix))
+        boundary_pixels.update(pix)
+    return boundary_pixels, pair_counts
+
+
+def _build_coarse_dense_label_maps(
+    decoded_masks: list[np.ndarray],
+    *,
+    out_h: int,
+    out_w: int,
+    total: float,
+    cfg: dict[str, Any],
+) -> tuple[np.ndarray, np.ndarray]:
+    min_frac = float(cfg.get("dense_label_coarse_region_min_frac", 0.04))
+    max_regions = int(cfg.get("dense_label_coarse_region_max_regions", 6))
+    fallback_min_frac = float(cfg.get("dense_label_fallback_region_min_frac", 0.02))
+
+    areas_masks: list[tuple[int, np.ndarray]] = []
+    for bm in decoded_masks:
+        area = int((bm > 0).sum())
+        if area <= 0:
+            continue
+        areas_masks.append((area, (bm > 0).astype(np.uint8)))
+    areas_masks.sort(key=lambda x: x[0], reverse=True)
+
+    def _pick(thr_frac: float) -> list[tuple[int, np.ndarray]]:
+        thr = float(thr_frac) * float(total)
+        picked = [x for x in areas_masks if float(x[0]) >= thr]
+        return picked[:max_regions] if max_regions > 0 else picked
+
+    picked = _pick(min_frac)
+    if len(picked) < 2:
+        picked = _pick(fallback_min_frac)
+
+    raw_mask = np.zeros((out_h, out_w), dtype=np.uint8)
+    texture_region_map = np.zeros((out_h, out_w), dtype=np.int32)
+    for rid, (_, bm) in enumerate(picked, start=1):
+        write = (texture_region_map == 0) & (bm == 1)
+        if not write.any():
+            continue
+        raw_mask[write] = np.uint8(1)
+        texture_region_map[write] = int(rid)
+
+    # Remaining masks are present but omitted as over-fine detail.
+    if areas_masks:
+        rest = np.zeros((out_h, out_w), dtype=np.uint8)
+        for _, bm in areas_masks:
+            rest = np.maximum(rest, bm)
+        raw_mask[(raw_mask == 0) & (rest == 1)] = np.uint8(3)
+
+    return raw_mask, texture_region_map
 
 
 def _balance_score(areas: list[int]) -> float:
@@ -403,10 +472,14 @@ def _analyze_one(
     max_segments = int(cfg.get("max_segments_decode_per_image", 80))
     anns_sorted = sorted(anns, key=lambda a: float(a.get("area", 0.0)), reverse=True)[:max_segments]
 
+    total = float(out_h * out_w)
+    dense_label_mode = bool(cfg.get("dense_label_use_coarse_boundaries_only", True)) and (
+        str(payload.get("__rwtd_source", "")).strip() == "dense_label_map"
+    )
+
     decoded_items: list[tuple[int, float, np.ndarray]] = []
+    dense_masks: list[np.ndarray] = []
     for ann in anns_sorted:
-        st = _segment_stats(ann, width=w, height=h)
-        cls_id = _classify_segment(st)
         seg = ann.get("segmentation", {})
         bm = _decode_segmentation(seg, width=w, height=h)
         if bm is None:
@@ -415,28 +488,41 @@ def _analyze_one(
             pil = Image.fromarray((bm * 255).astype(np.uint8), mode="L")
             pil = pil.resize((out_w, out_h), Image.Resampling.NEAREST)
             bm = (np.asarray(pil) > 0).astype(np.uint8)
+        if dense_label_mode:
+            dense_masks.append(bm)
+            continue
+        st = _segment_stats(ann, width=w, height=h)
+        cls_id = _classify_segment(st)
         decoded_items.append((int(cls_id), float(ann.get("area", 0.0)), bm))
 
-    raw_mask = np.zeros((out_h, out_w), dtype=np.uint8)
-    texture_region_map = np.zeros((out_h, out_w), dtype=np.int32)
-    next_tex_id = 1
+    if dense_label_mode:
+        raw_mask, texture_region_map = _build_coarse_dense_label_maps(
+            dense_masks,
+            out_h=out_h,
+            out_w=out_w,
+            total=total,
+            cfg=cfg,
+        )
+    else:
+        raw_mask = np.zeros((out_h, out_w), dtype=np.uint8)
+        texture_region_map = np.zeros((out_h, out_w), dtype=np.int32)
+        next_tex_id = 1
 
-    for cls_id in [2, 3, 1]:
-        cls_items = [x for x in decoded_items if x[0] == cls_id]
-        if cls_id == 2:
-            cls_items.sort(key=lambda x: x[1])
-        else:
-            cls_items.sort(key=lambda x: x[1], reverse=True)
-        for _, _, bm in cls_items:
-            write = (raw_mask == 0) & (bm == 1)
-            if not write.any():
-                continue
-            raw_mask[write] = np.uint8(cls_id)
-            if cls_id == 1:
-                texture_region_map[write] = int(next_tex_id)
-                next_tex_id += 1
+        for cls_id in [2, 3, 1]:
+            cls_items = [x for x in decoded_items if x[0] == cls_id]
+            if cls_id == 2:
+                cls_items.sort(key=lambda x: x[1])
+            else:
+                cls_items.sort(key=lambda x: x[1], reverse=True)
+            for _, _, bm in cls_items:
+                write = (raw_mask == 0) & (bm == 1)
+                if not write.any():
+                    continue
+                raw_mask[write] = np.uint8(cls_id)
+                if cls_id == 1:
+                    texture_region_map[write] = int(next_tex_id)
+                    next_tex_id += 1
 
-    total = float(out_h * out_w)
     obj_frac = float((raw_mask == 2).sum()) / max(1.0, total)
     tex_frac = float((raw_mask == 1).sum()) / max(1.0, total)
     amb_frac = float((raw_mask == 3).sum()) / max(1.0, total)
@@ -446,11 +532,22 @@ def _analyze_one(
     max_tid = int(tex_map.max())
     areas = np.bincount(tex_map.ravel(), minlength=max_tid + 1)[1:] if max_tid > 0 else np.asarray([], dtype=np.int64)
     min_region_frac = float(cfg.get("min_large_region_frac", 0.08))
+    if dense_label_mode:
+        min_region_frac = float(cfg.get("dense_label_min_large_region_frac", min_region_frac))
     min_area = min_region_frac * total
     large_ids = {int(i + 1) for i, a in enumerate(areas.tolist()) if float(a) >= min_area}
 
-    boundary_pixels, pair_counts = _boundary_pixels_and_counts(tex_map, large_ids=large_ids)
+    pair_pixels = _boundary_pair_pixels(tex_map, large_ids=large_ids)
+    pair_counts = {k: len(v) for k, v in pair_pixels.items()}
     perimeter = float(2 * (out_h + out_w))
+    min_pair_frac = float(cfg.get("boundary_pair_min_perimeter_frac", 0.012))
+    if dense_label_mode:
+        min_pair_frac = float(cfg.get("dense_label_boundary_pair_min_perimeter_frac", max(min_pair_frac, 0.03)))
+    min_pair_pixels = max(1, int(round(min_pair_frac * perimeter)))
+    pair_counts = {k: v for k, v in pair_counts.items() if int(v) >= min_pair_pixels}
+    boundary_pixels: set[tuple[int, int]] = set()
+    for k in pair_counts.keys():
+        boundary_pixels.update(pair_pixels.get(k, set()))
     boundary_norm = float(sum(pair_counts.values())) / max(1.0, perimeter)
 
     strong_boundary_min = int(cfg.get("strong_boundary_min_pixels", 40))
@@ -475,9 +572,6 @@ def _analyze_one(
         overlay_out=overlay_out,
     )
 
-    rel_mask = str(mask_out.relative_to(mask_out.parents[1]))
-    rel_overlay = str(overlay_out.relative_to(overlay_out.parents[1]))
-
     result = {
         "image_id": image_id,
         "geom_status": "ok",
@@ -488,8 +582,8 @@ def _analyze_one(
         "geom_num_large_texture_regions": int(len(large_ids)),
         "geom_num_strong_boundaries": int(strong_count),
         "geom_boundary_norm": float(boundary_norm),
-        "geom_mask_rel": rel_mask,
-        "geom_overlay_rel": rel_overlay,
+        "geom_mask_rel": str(mask_out.resolve()),
+        "geom_overlay_rel": str(overlay_out.resolve()),
     }
 
     ensure_dir(cache_meta_path.parent)

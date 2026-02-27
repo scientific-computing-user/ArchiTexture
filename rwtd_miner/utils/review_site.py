@@ -141,6 +141,11 @@ def build_review_site(df: pd.DataFrame, batch_dir: Path) -> Path:
                 "stageB_pass": bool(r.get("stageB_pass", False)),
                 "stageC_pass": None if pd.isna(r.get("stageC_pass")) else bool(r.get("stageC_pass")),
                 "stageD_decision": None if pd.isna(r.get("stageD_decision")) else str(r.get("stageD_decision")),
+                "stageD_overlay_score_0_100": None
+                if pd.isna(r.get("stageD_overlay_score_0_100"))
+                else round(float(r.get("stageD_overlay_score_0_100")), 3),
+                "stageD_overlay_pass": None if pd.isna(r.get("stageD_overlay_pass")) else bool(r.get("stageD_overlay_pass")),
+                "stageD_overlay_reason": None if pd.isna(r.get("stageD_overlay_reason")) else str(r.get("stageD_overlay_reason")),
                 "geom_texture_boundary_score": None
                 if pd.isna(r.get("geom_texture_boundary_score"))
                 else round(float(r.get("geom_texture_boundary_score")), 3),

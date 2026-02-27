@@ -11,6 +11,8 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
+from rwtd_miner.utils.mat_annotations import load_mat_as_annotation_payload
+
 try:
     from pycocotools import mask as mask_utils
 except Exception:  # pragma: no cover
@@ -38,6 +40,11 @@ def _decode_uncompressed_rle_area(seg: dict) -> float | None:
 
 def _segmentation_area(segmentation: Any) -> float | None:
     if segmentation is None:
+        return None
+
+    if isinstance(segmentation, np.ndarray):
+        if segmentation.ndim >= 2:
+            return float((segmentation > 0).sum())
         return None
 
     if isinstance(segmentation, dict):
@@ -191,6 +198,8 @@ def _annotation_payload_from_ref(annotation_ref: str) -> Any:
     if "::" in annotation_ref:
         path_str, idx_str = annotation_ref.rsplit("::", 1)
         path = Path(path_str)
+        if path.suffix.lower() == ".mat":
+            return load_mat_as_annotation_payload(path)
         payload = _read_json_cached(path)
         if idx_str.isdigit() and isinstance(payload, list):
             idx = int(idx_str)
@@ -198,6 +207,8 @@ def _annotation_payload_from_ref(annotation_ref: str) -> Any:
                 return payload[idx]
         return payload
     path = Path(annotation_ref)
+    if path.suffix.lower() == ".mat":
+        return load_mat_as_annotation_payload(path)
     return _read_json_cached(path)
 
 

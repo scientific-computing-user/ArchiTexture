@@ -19,6 +19,9 @@ class LocalSA1BAdapter(BaseDatasetAdapter):
         self.annotations_dir = self.input_root / "annotations"
         idx_cfg = self.config.get("index", {})
         self.image_exts = {x.lower() for x in idx_cfg.get("image_extensions", [".jpg", ".jpeg", ".png", ".webp"])}
+        self.annotation_exts = {
+            x.lower() for x in idx_cfg.get("annotation_extensions", [".json", ".mat", ".png"])
+        }
         self.read_dims = bool(idx_cfg.get("read_image_dimensions", True))
         self.scan_annotation_shards = bool(idx_cfg.get("annotation_scan_shards", True))
         self.shard_scan_max_files = int(idx_cfg.get("shard_scan_max_files", 500))
@@ -30,7 +33,9 @@ class LocalSA1BAdapter(BaseDatasetAdapter):
         out: dict[str, str] = {}
         if not self.annotations_dir.exists():
             return out
-        for p in self.annotations_dir.rglob("*.json"):
+        for p in self.annotations_dir.rglob("*"):
+            if (not p.is_file()) or (p.suffix.lower() not in self.annotation_exts):
+                continue
             stem = p.stem
             out.setdefault(stem, str(p))
         return out

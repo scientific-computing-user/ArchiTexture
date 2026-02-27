@@ -122,6 +122,15 @@ stage_d:
   hf_vlm_temperature: 0.0
   hf_vlm_load_in_4bit: true
   device_preference: auto
+  force_not_match_on_salient_semantic_subject: true
+  salient_semantic_subject_score_cap: 45
+  overlay_vlm_validation_enabled: true
+  overlay_vlm_validation_required: true
+  overlay_score_min: 65
+  overlay_fail_score_cap: 55
+  overlay_missing_score_cap: 45
+  overlay_penalty_on_fail: 24
+  overlay_bonus_on_pass: 6
   prompt: |
     Task:
     Score how well this image matches the "real-world texture segmentation" setting similar to RWTD.
@@ -131,14 +140,15 @@ stage_d:
     The image can be plausibly segmented into 2 to 4 large regions based primarily on texture/material changes (not object identity).
     There is a clear texture boundary or transition between regions.
     The image is NOT a mosaic, collage, patchwork, tiled texture sheet, graphic design, or repeated pattern sample.
-    The image is NOT primarily object-centric (not dominated by a single salient object, person, animal, product, or text).
+    The image is NOT primarily object-centric (not dominated by a single salient object, person, animal, vehicle, product, or text).
+    If animals or other semantic objects are prominent and clearly recognizable, treat it as not_match except for very rare texture-dominant edge cases.
 
     Output JSON only with these fields:
     - score_0_100: integer
     - decision: one of ["match", "borderline", "not_match"]
     - main_reason: one short sentence
     - flags: list of any that apply from
-      ["mosaic_or_collage", "synthetic_or_graphic", "object_centric", "too_many_objects", "no_clear_texture_boundary", "low_texture_content", "text_overlay_or_ui"]
+      ["mosaic_or_collage", "synthetic_or_graphic", "object_centric", "salient_semantic_subject", "too_many_objects", "no_clear_texture_boundary", "low_texture_content", "text_overlay_or_ui"]
 
     Scoring rubric:
     90-100: almost entirely texture/materials, 2-3 large regions, strong texture boundary, minimal objects
@@ -147,6 +157,25 @@ stage_d:
     0-39: object-centric, mosaic/collage, synthetic graphic, or no meaningful texture segmentation
 
     Now evaluate the image.
+  overlay_prompt: |
+    Task:
+    Evaluate a texture-boundary overlay visualization.
+
+    A good overlay for RWTD should show:
+    - 2 to 4 coarse, coherent, region-level boundaries
+    - boundaries aligned with large texture/material transitions
+    - minimal noisy micro-boundaries and fragmentation
+
+    A poor overlay should be marked not_match if:
+    - boundaries are too fine/noisy/fragmented
+    - there is no clear boundary structure
+    - region separation is unclear or mostly object-driven
+
+    Output JSON only with:
+    - score_0_100
+    - decision in ["match","borderline","not_match"]
+    - main_reason
+    - flags (from allowed set)
 
 selection:
   match_score_min: 80
@@ -167,3 +196,10 @@ review:
   mask_target_long_side: 960
   min_large_region_frac: 0.08
   strong_boundary_min_pixels: 40
+  boundary_pair_min_perimeter_frac: 0.012
+  dense_label_use_coarse_boundaries_only: true
+  dense_label_coarse_region_min_frac: 0.04
+  dense_label_fallback_region_min_frac: 0.02
+  dense_label_coarse_region_max_regions: 6
+  dense_label_min_large_region_frac: 0.04
+  dense_label_boundary_pair_min_perimeter_frac: 0.03

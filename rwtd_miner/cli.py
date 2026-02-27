@@ -4,6 +4,7 @@ import argparse
 import json
 import math
 import random
+import re
 import shutil
 from pathlib import Path
 from typing import Any
@@ -275,6 +276,12 @@ def _apply_generalized_selection_model(df: pd.DataFrame, cfg: dict[str, Any], st
     flags = out.get("stageD_flags", pd.Series([""] * n, index=idx)).fillna("").astype(str)
     decisions = out.get("stageD_decision", pd.Series([""] * n, index=idx)).fillna("").astype(str)
 
+    def _flags_has(flag_name: str) -> pd.Series:
+        if not flag_name:
+            return pd.Series(False, index=idx)
+        pat = rf"(?:^|\|){re.escape(str(flag_name))}(?:$|\|)"
+        return flags.str.contains(pat, na=False, regex=True)
+
     hard = pd.Series(False, index=idx)
     if bool(model_cfg.get("hard_veto_enabled", True)):
         hard = hard | (tf > float(model_cfg.get("hard_veto_thing_fraction_max", 0.35)))
@@ -286,7 +293,26 @@ def _apply_generalized_selection_model(df: pd.DataFrame, cfg: dict[str, Any], st
         if model_cfg.get("hard_veto_built_structure_fraction_max", None) not in (None, ""):
             hard = hard | (built_frac > float(model_cfg.get("hard_veto_built_structure_fraction_max")))
         if bool(model_cfg.get("hard_veto_object_centric_flag", True)):
-            hard = hard | flags.str.contains("object_centric", na=False)
+            hard = hard | _flags_has("object_centric")
+        hard_flags = model_cfg.get("hard_veto_flags", ["salient_semantic_subject"])
+        if isinstance(hard_flags, list):
+            for f in hard_flags:
+                fs = str(f).strip()
+                if fs:
+                    hard = hard | _flags_has(fs)
+
+    rare_semantic_override = pd.Series(False, index=idx)
+    if bool(model_cfg.get("allow_rare_semantic_override", True)):
+        sem_flag = str(model_cfg.get("rare_semantic_override_flag", "salient_semantic_subject")).strip()
+        sem_rows = _flags_has(sem_flag) | _flags_has("object_centric")
+        rare_semantic_override = (
+            sem_rows
+            & (vlm >= float(model_cfg.get("rare_semantic_override_min_vlm_score", 96.0)))
+            & (geom >= float(model_cfg.get("rare_semantic_override_min_geom_score", 97.0)))
+            & (geom_obj <= float(model_cfg.get("rare_semantic_override_max_geom_object_fraction", 0.01)))
+            & (~_flags_has("too_many_objects"))
+        )
+        hard = hard & (~rare_semantic_override)
 
     override = pd.Series(False, index=idx)
     if bool(model_cfg.get("texture_override_enabled", True)):
@@ -305,6 +331,7 @@ def _apply_generalized_selection_model(df: pd.DataFrame, cfg: dict[str, Any], st
     out["objectness_soft_penalty"] = soft_penalty.astype(float)
     out["objectness_hard_veto"] = hard.astype(bool)
     out["texture_override_applied"] = override.astype(bool)
+    out["rare_semantic_override_applied"] = rare_semantic_override.astype(bool)
 
     selected_min = float(model_cfg.get("selected_score_min", sel_cfg.get("match_score_min", 80)))
     borderline_min = float(model_cfg.get("borderline_score_min", sel_cfg.get("borderline_score_min", 70)))
@@ -759,7 +786,7 @@ def _run_one_batch(batch_id: int, batch_df: pd.DataFrame, out_root: Path, cfg: d
     if stage_d_enabled and not cp.is_stage_done("stage_d"):
         from rwtd_miner.stages.stage_d_vlm import run_stage_d
 
-        df = run_stage_d(df, cfg=stage_d_cfg)
+        df = run_stage_d(df, cfg=stage_d_cfg, batch_dir=batch_dir)
         _save_batch_manifest(df, batch_dir, write_csv=write_csv)
         cp.mark_stage_done("stage_d")
     elif cp.is_stage_done("stage_d"):
@@ -770,6 +797,9 @@ def _run_one_batch(batch_id: int, batch_df: pd.DataFrame, out_root: Path, cfg: d
             df["stageD_decision"] = None
             df["stageD_flags"] = None
             df["stageD_reason"] = None
+            df["stageD_overlay_score_0_100"] = None
+            df["stageD_overlay_pass"] = None
+            df["stageD_overlay_reason"] = None
 
     df = _select_final(df, cfg=cfg, stage_d_enabled=stage_d_enabled)
     _save_batch_manifest(df, batch_dir, write_csv=write_csv)
@@ -1106,7 +1136,7 @@ def cmd_ade20k_full(args: argparse.Namespace) -> int:
             stage_d_cfg["score_top_n_from_stage_b"],
             stage_d_cfg["hf_blip_vqa_model_name"],
         )
-        df = run_stage_d(df=df, cfg=stage_d_cfg)
+        df = run_stage_d(df=df, cfg=stage_d_cfg, batch_dir=out_root)
 
     if bool(args.enable_clip) or bool(args.enable_vlm):
         df = _apply_multimodal_fusion_score(

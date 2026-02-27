@@ -37,6 +37,8 @@ stage_d:
   device_preference: cuda
   force_not_match_on_object_centric: true
   object_centric_score_cap: 55
+  force_not_match_on_salient_semantic_subject: true
+  salient_semantic_subject_score_cap: 45
 
 selection:
   match_score_min: 72
@@ -55,6 +57,13 @@ selection:
     borderline_requires_non_not_match: true
     hard_veto_enabled: true
     hard_veto_object_centric_flag: true
+    hard_veto_flags:
+      - salient_semantic_subject
+    allow_rare_semantic_override: true
+    rare_semantic_override_flag: salient_semantic_subject
+    rare_semantic_override_min_vlm_score: 96
+    rare_semantic_override_min_geom_score: 97
+    rare_semantic_override_max_geom_object_fraction: 0.01
     soft_penalty_geom_object_weight: 18.0
     soft_penalty_large_instances_weight: 2.0
     texture_override_enabled: true

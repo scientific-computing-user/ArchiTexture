@@ -10,6 +10,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from PIL import Image, ImageOps, ImageFilter
+
 
 def _balanced_pick(rows: list[dict[str, Any]], max_samples: int, seed: int) -> list[dict[str, Any]]:
     if len(rows) <= max_samples:
@@ -64,6 +66,36 @@ def _safe_copy(src: Path, dst: Path) -> bool:
     dst.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(src, dst)
     return True
+
+
+def _make_proxy_mask(src: Path, dst: Path) -> bool:
+    try:
+        with Image.open(src) as im:
+            gray = im.convert("L")
+            edges = ImageOps.autocontrast(gray.filter(ImageFilter.FIND_EDGES))
+            mask = edges.point(lambda p: 255 if p >= 36 else 0, mode="L")
+            out = ImageOps.colorize(mask, black=(8, 8, 8), white=(245, 245, 245)).convert("RGB")
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        out.save(dst, quality=90)
+        return True
+    except Exception:
+        return False
+
+
+def _make_proxy_overlay(src: Path, dst: Path) -> bool:
+    try:
+        with Image.open(src) as im:
+            base = im.convert("RGB")
+            edges = ImageOps.autocontrast(base.convert("L").filter(ImageFilter.FIND_EDGES))
+            edge_mask = edges.point(lambda p: min(255, int(p * 1.9)), mode="L")
+            tint = Image.new("RGB", base.size, (255, 90, 20))
+            comp = Image.composite(tint, base, edge_mask)
+            out = Image.blend(base, comp, 0.42)
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        out.save(dst, quality=90)
+        return True
+    except Exception:
+        return False
 
 
 def _safe_slug(text: str) -> str:
@@ -158,6 +190,27 @@ def build_bundle(
         dataset = str(row.get("dataset") or dataset_id or "unknown")
         asset_stem = _safe_slug(f"{dataset}__{image_id}")
         thumb_out_rel = ""
+        orig_out_rel = ""
+
+        image_src_raw = str(row.get("image_path") or "").strip()
+        image_src_path: Path | None = None
+        if image_src_raw:
+            cand = Path(image_src_raw).expanduser()
+            if not cand.is_absolute():
+                cand2 = source_review_dir / image_src_raw
+                if cand2.exists():
+                    cand = cand2
+            if cand.exists() and cand.is_file():
+                image_src_path = cand
+
+        # Original image path can be absolute or relative; copy into bundle for GitHub Pages.
+        if image_src_path is not None:
+            ext = image_src_path.suffix.lower() or ".jpg"
+            dst_orig = out_review_dir / "originals" / f"{asset_stem}{ext}"
+            if _safe_copy(image_src_path, dst_orig):
+                orig_out_rel = f"originals/{asset_stem}{ext}"
+                row["image_path"] = orig_out_rel
+                copied["original"] += 1
 
         # Thumbnail (relative path from source review dir).
         thumb_rel = str(row.get("thumb") or "").strip()
@@ -182,7 +235,13 @@ def build_bundle(
                 copied["mask"] += 1
                 mask_ok = True
         if not mask_ok:
-            row["mask_rel"] = thumb_out_rel
+            dst_mask = out_review_dir / "masks" / f"{asset_stem}.jpg"
+            if image_src_path is not None and _make_proxy_mask(image_src_path, dst_mask):
+                row["mask_rel"] = f"masks/{asset_stem}.jpg"
+                copied["mask"] += 1
+                mask_ok = True
+        if not mask_ok:
+            row["mask_rel"] = orig_out_rel or thumb_out_rel or str(row.get("image_path") or "")
 
         overlay_rel = str(row.get("overlay_rel") or "").strip()
         overlay_ok = False
@@ -195,18 +254,15 @@ def build_bundle(
                 copied["overlay"] += 1
                 overlay_ok = True
         if not overlay_ok:
-            row["overlay_rel"] = thumb_out_rel
+            dst_overlay = out_review_dir / "overlays" / f"{asset_stem}.jpg"
+            if image_src_path is not None and _make_proxy_overlay(image_src_path, dst_overlay):
+                row["overlay_rel"] = f"overlays/{asset_stem}.jpg"
+                copied["overlay"] += 1
+                overlay_ok = True
+        if not overlay_ok:
+            row["overlay_rel"] = orig_out_rel or thumb_out_rel or str(row.get("image_path") or "")
 
-        # Original image path can be absolute; copy into bundle for GitHub Pages.
-        img_path = Path(str(row.get("image_path") or "")).expanduser()
-        if img_path.exists() and img_path.is_file():
-            ext = img_path.suffix.lower() or ".jpg"
-            dst_orig = out_review_dir / "originals" / f"{asset_stem}{ext}"
-            if _safe_copy(img_path, dst_orig):
-                row["image_path"] = f"originals/{asset_stem}{ext}"
-                copied["original"] += 1
-        else:
-            # Fallback to thumbnail if original is unavailable.
+        if not str(row.get("image_path") or "").strip():
             row["image_path"] = thumb_out_rel
 
         merged[_row_key(row)] = row
