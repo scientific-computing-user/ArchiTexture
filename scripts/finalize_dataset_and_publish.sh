@@ -113,9 +113,19 @@ log "code_repo=$CODE_REPO"
 
 mkdir -p "$CODE_REPO/progress"
 
+PYTHON_BIN="$CODE_REPO/.venv/bin/python"
+if [[ ! -x "$PYTHON_BIN" ]]; then
+  if command -v python3 >/dev/null 2>&1; then
+    PYTHON_BIN="$(command -v python3)"
+  else
+    PYTHON_BIN="$(command -v python)"
+  fi
+fi
+log "python_bin=$PYTHON_BIN"
+
 # 1) Rebuild docs/review bundle for quick web verification.
 log "Building docs/review bundle"
-python "$CODE_REPO/scripts/build_pages_bundle.py" \
+"$PYTHON_BIN" "$CODE_REPO/scripts/build_pages_bundle.py" \
   --source_review "$SOURCE_REVIEW" \
   --out_review "$CODE_REPO/docs/review" \
   --max_samples "$MAX_SAMPLES" \
@@ -126,7 +136,7 @@ python "$CODE_REPO/scripts/build_pages_bundle.py" \
   | tee "$CODE_REPO/docs/review/bundle_stdout.json" >/dev/null
 
 # 2) Create progress entry JSON.
-ENTRY_JSON="$(DATASET_ID_ENV="$DATASET_ID" RUN_DIR_ENV="$RUN_DIR" SOURCE_REVIEW_ENV="$SOURCE_REVIEW" CODE_REPO_ENV="$CODE_REPO" python - <<'PY'
+ENTRY_JSON="$(DATASET_ID_ENV="$DATASET_ID" RUN_DIR_ENV="$RUN_DIR" SOURCE_REVIEW_ENV="$SOURCE_REVIEW" CODE_REPO_ENV="$CODE_REPO" "$PYTHON_BIN" - <<'PY'
 import json
 import os
 from collections import Counter
@@ -161,7 +171,7 @@ PY
 echo "$ENTRY_JSON" >> "$CODE_REPO/progress/datasets_progress.jsonl"
 
 # 3) Render markdown board.
-CODE_REPO_ENV="$CODE_REPO" python - <<'PY'
+CODE_REPO_ENV="$CODE_REPO" "$PYTHON_BIN" - <<'PY'
 import json
 import os
 from pathlib import Path

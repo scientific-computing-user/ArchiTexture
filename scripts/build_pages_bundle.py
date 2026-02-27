@@ -32,30 +32,30 @@ def _balanced_pick(rows: list[dict[str, Any]], max_samples: int, seed: int) -> l
     }
 
     picked: list[dict[str, Any]] = []
+    def _rank_key(x: dict[str, Any]) -> tuple[int, int, int, float, float]:
+        # Prefer rows with explicit overlay-VLM validation signals first.
+        has_overlay_vlm = int(x.get("stageD_overlay_score_0_100") is not None)
+        has_decision = int(x.get("stageD_decision") is not None)
+        has_vlm = int(has_overlay_vlm or has_decision or (x.get("stageD_score_0_100") is not None))
+        overlay_score = float(x.get("stageD_overlay_score_0_100") or -1.0)
+        return (has_overlay_vlm, has_decision, has_vlm, overlay_score, float(x.get("final_score") or 0.0))
+
     for k in ("selected", "borderline", "rejected"):
         g = groups[k]
         if not g:
             continue
-        g_sorted = sorted(g, key=lambda x: float(x.get("final_score") or 0.0), reverse=True)
+        g_sorted = sorted(g, key=_rank_key, reverse=True)
         n = min(target[k], len(g_sorted))
-        if k == "rejected" and len(g_sorted) > n:
-            half = max(1, n // 2)
-            top = g_sorted[:half]
-            tail_pool = g_sorted[half:]
-            tail_n = n - len(top)
-            tail = random.sample(tail_pool, k=min(tail_n, len(tail_pool))) if tail_n > 0 else []
-            picked.extend(top + tail)
-        else:
-            picked.extend(g_sorted[:n])
+        picked.extend(g_sorted[:n])
 
     if len(picked) < max_samples:
         picked_ids = {str(x.get("image_id")) for x in picked}
         pool = [r for r in rows if str(r.get("image_id")) not in picked_ids]
-        pool = sorted(pool, key=lambda x: float(x.get("final_score") or 0.0), reverse=True)
+        pool = sorted(pool, key=_rank_key, reverse=True)
         picked.extend(pool[: max_samples - len(picked)])
 
     if len(picked) > max_samples:
-        picked = sorted(picked, key=lambda x: float(x.get("final_score") or 0.0), reverse=True)[:max_samples]
+        picked = sorted(picked, key=_rank_key, reverse=True)[:max_samples]
 
     return picked
 
