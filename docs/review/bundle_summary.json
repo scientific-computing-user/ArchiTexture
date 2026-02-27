@@ -1,25 +1,26 @@
 {
-  "source": "/home/galoren/rwtd_runs/coco_stuff_vlm_coco_ultra_strict_v3_20260226_2230/batches/batch_00000/review",
+  "source": "/home/galoren/rwtd_runs/coco_panoptic_train_vlm_coco_ultra_strict_20260226_2312/batches/batch_00003/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
-  "n_input": 329,
-  "n_existing": 1756,
-  "n_existing_replaced_for_dataset": 260,
+  "n_input": 19636,
+  "n_existing": 2016,
+  "n_existing_replaced_for_dataset": 0,
   "n_new_selected": 260,
-  "n_output": 2016,
+  "n_output": 2276,
   "copied": {
     "thumb": 260,
-    "mask": 260,
-    "overlay": 260,
+    "mask": 255,
+    "overlay": 255,
     "original": 260
   },
   "by_status": {
     "selected": 767,
-    "borderline": 391,
-    "rejected": 858
+    "rejected": 1118,
+    "borderline": 391
   },
   "by_dataset": {
     "coco_stuff": 260,
     "ade20k": 1500,
-    "rwtd_reference": 256
+    "rwtd_reference": 256,
+    "coco_panoptic": 260
   }
 }
