@@ -3,7 +3,7 @@
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
   "n_input": 500,
   "n_existing": 2796,
-  "n_existing_replaced_for_dataset": 0,
+  "n_existing_replaced_for_dataset": 260,
   "n_new_selected": 260,
   "n_output": 3056,
   "copied": {
