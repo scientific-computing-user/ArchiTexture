@@ -3,7 +3,7 @@
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
   "n_input": 19636,
   "n_existing": 2276,
-  "n_existing_replaced_for_dataset": 0,
+  "n_existing_replaced_for_dataset": 260,
   "n_new_selected": 260,
   "n_output": 2536,
   "copied": {
@@ -13,15 +13,15 @@
     "original": 260
   },
   "by_status": {
-    "selected": 769,
-    "rejected": 1376,
+    "selected": 771,
+    "rejected": 1374,
     "borderline": 391
   },
   "by_dataset": {
     "coco_stuff": 260,
     "coco_natural_views": 260,
+    "coco_panoptic": 260,
     "ade20k": 1500,
-    "rwtd_reference": 256,
-    "coco_panoptic": 260
+    "rwtd_reference": 256
   }
 }
