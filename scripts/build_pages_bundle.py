@@ -6,6 +6,7 @@ import json
 import random
 import re
 import shutil
+import time
 from pathlib import Path
 from typing import Any
 
@@ -135,11 +136,18 @@ def build_bundle(
     for sub in ("thumbnails", "masks", "overlays", "originals"):
         (out_review_dir / sub).mkdir(parents=True, exist_ok=True)
 
-    # Copy viewer template.
+    # Copy viewer template and cache-bust data.js to avoid stale browser payloads.
     src_index = source_review_dir / "index.html"
     if not src_index.exists():
         raise FileNotFoundError(f"Missing index.html: {src_index}")
-    shutil.copy2(src_index, out_review_dir / "index.html")
+    index_text = src_index.read_text(encoding="utf-8")
+    cache_bust = str(int(time.time()))
+    index_text = re.sub(
+        r'''src=(["'])data\.js\1''',
+        f'src="data.js?v={cache_bust}"',
+        index_text,
+    )
+    (out_review_dir / "index.html").write_text(index_text, encoding="utf-8")
 
     out_rows: list[dict[str, Any]] = []
     copied = {"thumb": 0, "mask": 0, "overlay": 0, "original": 0}
