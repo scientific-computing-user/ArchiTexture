@@ -13,17 +13,17 @@
     "original": 260
   },
   "by_status": {
-    "selected": 869,
-    "rejected": 1745,
+    "selected": 867,
+    "rejected": 1747,
     "borderline": 442
   },
   "by_dataset": {
     "pascal_context": 260,
-    "coco_panoptic": 260,
     "ade20k": 1500,
     "rwtd_reference": 256,
     "coco_stuff": 260,
     "coco_natural_views": 260,
+    "coco_panoptic": 260,
     "bsds500": 260
   }
 }
