@@ -1,7 +1,7 @@
 {
-  "source": "/home/galoren/rwtd_runs/pascal_context_ingest_smoke_20260227_0358/batches/batch_00000/review",
+  "source": "/home/galoren/rwtd_runs/bsds500_ingest_smoke_20260227_0356/batches/batch_00000/review",
   "out": "/home/galoren/rwtd_miner_github_repo/docs/review",
-  "n_input": 9359,
+  "n_input": 500,
   "n_existing": 2796,
   "n_existing_replaced_for_dataset": 260,
   "n_new_selected": 260,
@@ -19,8 +19,8 @@
   },
   "by_dataset": {
     "coco_stuff": 260,
-    "bsds500": 260,
     "pascal_context": 260,
+    "bsds500": 260,
     "coco_natural_views": 260,
     "coco_panoptic": 260,
     "ade20k": 1500,
