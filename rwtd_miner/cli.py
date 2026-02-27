@@ -400,8 +400,9 @@ def _select_final(df: pd.DataFrame, cfg: dict[str, Any], stage_d_enabled: bool) 
             out["selection_reason"] = "no_signal"
             out["final_selected"] = False
 
-    out = _apply_semantic_object_gates(out, cfg)
     out = _apply_generalized_selection_model(out, cfg=cfg, stage_d_enabled=stage_d_enabled)
+    # Semantic gates must run last so hard rejects cannot be re-selected by downstream scoring.
+    out = _apply_semantic_object_gates(out, cfg)
 
     cap = sel_cfg.get("top_n_cap")
     if cap not in (None, "", 0):
