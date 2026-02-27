@@ -2,6 +2,7 @@
 
 | finished_at_utc | dataset_id | source_samples | selected | borderline | rejected |
 |---|---:|---:|---:|---:|---:|
+| 2026-02-27T05:13:13Z | bsds500 | 500 | 0 | 0 | 500 |
 | 2026-02-27T04:49:36Z | bsds500 | 500 | 0 | 0 | 500 |
 | 2026-02-27T04:36:35Z | bsds500 | 500 | 111 | 56 | 333 |
 | 2026-02-27T04:36:12Z | pascal_context | 9359 | 2037 | 1230 | 6092 |

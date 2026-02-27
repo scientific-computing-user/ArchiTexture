@@ -96,7 +96,7 @@
   <div id="grid" class="grid"></div>
 </div>
 <aside id="detail" class="detail"><div class="inner"></div></aside>
-<script src="data.js?v=1772167776"></script>
+<script src="data.js?v=1772169192"></script>
 <script>
 const BUILD_TAG = "v4";
 const STATUS_SET = new Set(["selected", "borderline", "rejected"]);
@@ -385,6 +385,9 @@ function openDetail(i){
     ${kv("geom_boundary_norm", r.geom_boundary_norm ?? "")}
     ${kv("stageB_clip_score", r.stageB_clip_score ?? "")}
     ${kv("stageD_score_0_100", r.stageD_score_0_100 ?? "")}
+    ${kv("stageD_overlay_score_0_100", r.stageD_overlay_score_0_100 ?? "")}
+    ${kv("stageD_overlay_pass", r.stageD_overlay_pass ?? "")}
+    ${kv("stageD_overlay_reason", r.stageD_overlay_reason ?? "")}
     ${kv("stageA_n_masks", r.stageA_n_masks ?? "")}
     ${kv("stageA_largest_ratio", r.stageA_largest_ratio ?? "")}
     ${kv("stageA_small_frac", r.stageA_small_frac ?? "")}
