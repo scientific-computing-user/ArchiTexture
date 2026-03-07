@@ -1,0 +1,16 @@
+{
+  "before_counts": {
+    "selected": 33,
+    "borderline": 66,
+    "rejected": 230
+  },
+  "after_counts": {
+    "selected": 0,
+    "borderline": 0,
+    "rejected": 329
+  },
+  "before_object_presence_selected": 33,
+  "after_object_presence_selected": 0,
+  "before_mismatch": 33,
+  "after_mismatch": 0
+}

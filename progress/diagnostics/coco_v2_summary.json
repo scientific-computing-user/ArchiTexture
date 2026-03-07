@@ -1,0 +1,23 @@
+{
+  "run_dir": "/home/galoren/rwtd_runs/coco_stuff_vlm_coco_ultra_strict_v2_20260226_2212",
+  "counts": {
+    "selected": 7,
+    "borderline": 1,
+    "rejected": 321
+  },
+  "selected_object_heavy_audit_count": 0,
+  "selected_object_heavy_audit_rate": 0.0,
+  "selected_ids": [
+    "000000003255",
+    "000000019042",
+    "000000028285",
+    "000000032811",
+    "000000023230",
+    "000000025593",
+    "000000013774"
+  ],
+  "selection_reason_counts": {
+    "stageD_vlm|semantic_gate|generalized_model": 254,
+    "stageD_vlm|generalized_model": 75
+  }
+}

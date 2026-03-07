@@ -1,0 +1,24 @@
+{
+  "run_dir": "/home/galoren/rwtd_runs/coco_stuff_vlm_valannot_fix2_20260226_2144",
+  "n_total": 329,
+  "n_selected": 33,
+  "n_borderline": 66,
+  "n_rejected": 230,
+  "selection_reason_counts": {
+    "stageA_plus_geometry": 329
+  },
+  "selected_object_presence_count": 33,
+  "selected_object_presence_rate": 1.0,
+  "selected_stageD_decision_dist": {
+    "": 33
+  },
+  "selected_score_quantiles": {
+    "min": 54.12759518716256,
+    "q25": 54.90522461902408,
+    "median": 55.63099679345162,
+    "q75": 56.420970602220116,
+    "max": 64.93453277717475
+  },
+  "selected_mismatch_against_vlm_80_match": 33,
+  "top_selected_csv": "progress/diagnostics/coco_before_top_selected.csv"
+}

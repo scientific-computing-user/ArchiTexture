@@ -1,0 +1,19 @@
+{
+  "run_dir": "/home/galoren/rwtd_runs/coco_stuff_vlm_coco_ultra_strict_20260226_2201",
+  "n_total": 329,
+  "n_selected": 0,
+  "n_borderline": 0,
+  "n_rejected": 329,
+  "selection_reason_counts": {
+    "stageD_vlm|semantic_gate": 327,
+    "stageD_vlm": 2
+  },
+  "semantic_gate_failed_count": 327,
+  "selected_object_presence_count": 0,
+  "selected_object_presence_rate": 0.0,
+  "selected_stageD_decision_dist": {},
+  "selected_score_quantiles": {},
+  "selected_mismatch_against_vlm_85_match": 0,
+  "top_selected_csv": "progress/diagnostics/coco_after_top_selected.csv",
+  "top30_selected_csv": "progress/diagnostics/coco_after_top30_summary.csv"
+}
