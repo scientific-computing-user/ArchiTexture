@@ -1,6 +1,6 @@
-# RWTD Miner
+# ArchiTexture
 
-Resumable Python pipeline for mining RWTD-like texture-transition images from dense segmentation datasets.
+ArchiTexture is a resumable Python pipeline for mining RWTD-like texture-transition images from dense segmentation datasets.
 
 This repo includes:
 - The full mining codebase (Stage A/B/C/D, adapters, scoring, reporting, review UI).
@@ -26,7 +26,9 @@ This repo includes:
 
 ## Hosted Review (Public Site)
 
-This code repository stays private.
+Code, data-processing, and training assets are hosted in this repository:
+- `https://github.com/scientific-computing-user/ArchiTexture`
+
 The public static review website is published separately at:
 
 - `https://scientific-computing-user.github.io/rwtd-texture-miner-site/review/`
@@ -57,7 +59,7 @@ The adapter supports:
 ## Install
 
 ```bash
-cd /Users/galoren/TextureData/rwtd_miner_github_repo
+cd /path/to/ArchiTexture
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -146,7 +148,7 @@ Build index:
 python -m rwtd_miner.cli index \
   --input_root /path/to/sa1b \
   --out /path/to/out \
-  --config /Users/galoren/TextureData/rwtd_miner/config.yaml
+  --config /path/to/ArchiTexture/config.yaml
 ```
 
 Run one batch:
@@ -295,7 +297,7 @@ It reads `{"image_path": "...", "prompt": "..."}` from stdin and returns Stage-D
 Setup:
 
 ```bash
-cd /Users/galoren/TextureData/rwtd_miner
+cd /path/to/ArchiTexture
 source .venv/bin/activate
 export GEMINI_API_KEY="YOUR_KEY"
 ```
@@ -304,7 +306,7 @@ Quick sanity test of wrapper contract:
 
 ```bash
 echo '{"image_path":"/abs/path/sample.jpg","prompt":"Score this image and return JSON only."}' | \
-python /Users/galoren/TextureData/rwtd_miner/scripts/vlm_wrapper_gemini.py --model gemini-2.5-flash-lite
+python /path/to/ArchiTexture/scripts/vlm_wrapper_gemini.py --model gemini-2.5-flash-lite
 ```
 
 Use in config (`stage_d`):
@@ -313,7 +315,7 @@ Use in config (`stage_d`):
 stage_d:
   enabled: true
   backend: external_command
-  external_command: "python /Users/galoren/TextureData/rwtd_miner/scripts/vlm_wrapper_gemini.py --model gemini-2.5-flash-lite"
+  external_command: "python /path/to/ArchiTexture/scripts/vlm_wrapper_gemini.py --model gemini-2.5-flash-lite"
   score_top_n_from_stage_b: 700
 ```
 
