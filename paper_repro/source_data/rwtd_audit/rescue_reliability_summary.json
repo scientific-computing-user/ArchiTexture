@@ -1,0 +1,18 @@
+{
+  "fraction_ari_help_not_iou": 0.047619047619047616,
+  "fraction_hurt_any_metric": 0.38095238095238093,
+  "fraction_hurt_both_iou_and_ari": 0.2857142857142857,
+  "fraction_improve_any_metric": 0.7142857142857143,
+  "fraction_improve_official_pair": 0.6190476190476191,
+  "fraction_iou_help_not_ari": 0.047619047619047616,
+  "mean_boundary_f1_gain": 0.19401098787784576,
+  "mean_boundary_iou_gain": 0.13282792270183563,
+  "mean_iou_gain": 0.2246861457824707,
+  "mean_visual_change_proxy": 0.5760069489479065,
+  "median_iou_gain": 0.017037667334079742,
+  "median_visual_change_proxy": 0.5532073974609375,
+  "overstated_rescue_count": 0,
+  "overstated_rescue_fraction_of_rescues": 0.0,
+  "p05_iou_gain": -0.42917925119400024,
+  "rescue_activations": 21
+}

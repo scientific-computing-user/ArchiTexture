@@ -19,6 +19,8 @@ This repo still contains the RWTD-mining/review code under `rwtd_miner/` and the
 ## Quick Links
 
 - Paper reproducibility map: [PAPER_REPRODUCIBILITY.md](PAPER_REPRODUCIBILITY.md)
+- GitHub-only paper table reproduction bundle: [paper_repro/README.md](paper_repro/README.md)
+- Rendered paper table bundle: [paper_repro/generated/paper_tables.md](paper_repro/generated/paper_tables.md)
 - Local static review bundle in this repo: `docs/review/index.html`
 - Public ArchiTexture results hub: `https://scientific-computing-user.github.io/rwtd-texture-miner-site/`
 - Public code repo: `https://github.com/scientific-computing-user/ArchiTexture`
@@ -89,6 +91,18 @@ If you are working inside the same workspace/archive as this repo, these are the
   Public GitHub Pages galleries referenced by the paper footnotes.
 - `./rwtd_miner`
   The mining/review pipeline retained in this repo.
+
+## Paper Tables From This GitHub Checkout
+
+The repository now includes a public table-reproduction bundle under [`paper_repro/`](paper_repro/).
+
+To rebuild and verify the paper tables from the committed public JSON/CSV summaries:
+
+```bash
+python paper_repro/scripts/build_paper_tables.py --check --write
+```
+
+This is the fastest way for a reader to confirm the table values without rerunning the full experiment stack. The heavier route-level rebuilds and archived workspace paths are still documented below and in [PAPER_REPRODUCIBILITY.md](PAPER_REPRODUCIBILITY.md).
 
 ## Minimal Rebuild Commands
 

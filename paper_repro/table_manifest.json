@@ -1,0 +1,593 @@
+{
+  "tables": [
+    {
+      "id": "tab:route_protocol",
+      "title": "Per-route protocol summary",
+      "section": "main_paper",
+      "build": "manifest_rows",
+      "columns": [
+        "Route",
+        "Train source",
+        "Deployed variant",
+        "Primary metric",
+        "Comparator"
+      ],
+      "public_sources": [],
+      "workspace_sources": [
+        "../TextureSAM-v2/TextureSum2_paper/paper_body.tex",
+        "../TextureSAM-v2/TextureSum2_paper/SUPPLEMENT_CONFIG_TABLE.md",
+        "../TextureSAM-v2/TextureSum2_paper/REPRO_COMMANDS.md"
+      ],
+      "notes": "Static protocol table from the final manuscript. The public repo keeps the final row values here and maps them back to the paper-side config documents.",
+      "rows": [
+        {
+          "Route": "RWTD",
+          "Train source": "PTD synthetic supervision only",
+          "Deployed variant": "Full ArchiTexture: Swin-Base encoder + merge/core/repair",
+          "Primary metric": "Official RWTD mIoU / ARI",
+          "Comparator": "prior paper-reported state of the art + public checkpoint rerun + raw SAM2.1-small"
+        },
+        {
+          "Route": "STLD",
+          "Train source": "Brodatz + MPEG-7 synthetic supervision",
+          "Deployed variant": "Full ArchiTexture matched to STLD construction",
+          "Primary metric": "Direct foreground mIoU / ARI",
+          "Comparator": "public checkpoint rerun + raw SAM2.1-small"
+        },
+        {
+          "Route": "ControlNet-stitched PTD",
+          "Train source": "none beyond PTD training",
+          "Deployed variant": "PTD-trained `small_pre_ring_hi` Stage-A",
+          "Primary metric": "Partition-invariant mIoU / ARI",
+          "Comparator": "public checkpoint rerun + raw SAM2.1-small"
+        },
+        {
+          "Route": "CAID",
+          "Train source": "none beyond PTD training",
+          "Deployed variant": "PTD-trained `small_pre_ring_hi` Stage-A",
+          "Primary metric": "Partition-invariant mIoU / ARI",
+          "Comparator": "public checkpoint rerun + raw SAM2.1-small"
+        }
+      ]
+    },
+    {
+      "id": "tab:results",
+      "title": "Unified results across the four evaluation routes",
+      "section": "main_paper",
+      "build": "main_results",
+      "columns": [
+        "Method",
+        "Subset / coverage",
+        "mIoU",
+        "ARI"
+      ],
+      "public_sources": [
+        "source_data/main_results/rwtd_sam2_original_official.json",
+        "source_data/main_results/rwtd_texturesam_common253_official.json",
+        "source_data/main_results/rwtd_architexture_full256_official.json",
+        "source_data/main_results/rwtd_architexture_common253_official.json",
+        "source_data/main_results/stld_sam2_original_summary.json",
+        "source_data/main_results/stld_architexture_summary.json",
+        "source_data/main_results/stld_texturesam_summary.json",
+        "source_data/main_results/controlnet_sam2_original_summary.json",
+        "source_data/main_results/controlnet_partition_summary.json",
+        "source_data/main_results/caid_sam2_original_summary.json",
+        "source_data/main_results/caid_partition_summary.json"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/experiments/sam2_original_baselines_20260313/rwtd/sam2_original_rwtd_eval.json",
+        "../TextureSAM-v2/reports/repro_upstream_eval/official_0p3_full_combined_upstream_eval.json",
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/official_eval_full256.json",
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/official_eval_common253.json",
+        "../TextureSAM-v2/experiments/sam2_original_baselines_20260313/stld/sam2_original_stld_summary.json",
+        "../TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/direct_eval/direct_foreground_summary.json",
+        "../TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/stld_texturesam0p3_maskbank_summary.json",
+        "../TextureSAM-v2/experiments/sam2_original_baselines_20260313/controlnet/sam2_original_controlnet_summary.json",
+        "../TextureSAM-v2/experiments/perlin_controlnet_eval_20260312/full_0p3/eval_0p3/binary_partition_summary.json",
+        "../TextureSAM-v2/experiments/sam2_original_baselines_20260313/caid/sam2_original_caid_summary.json",
+        "../TextureSAM-v2/experiments/caid_eval_20260313/full_0p3/eval_0p3/binary_partition_summary.json"
+      ],
+      "notes": "This table is rebuilt directly from the committed summary JSON files. The paper-reported TextureSAM RWTD row remains a contextual manuscript number rather than a recomputed public-checkpoint rerun.",
+      "rows": [
+        {
+          "group": "RWTD (natural route)",
+          "Method": "SAM2.1-small original rerun",
+          "Subset / coverage": "full-256, 256/256",
+          "mIoU": "0.1615",
+          "ARI": "0.2183"
+        },
+        {
+          "group": "RWTD (natural route)",
+          "Method": "TextureSAM paper-reported RWTD result (eta <= 0.3)",
+          "Subset / coverage": "paper-reported",
+          "mIoU": "0.4700",
+          "ARI": "0.6200"
+        },
+        {
+          "group": "RWTD (natural route)",
+          "Method": "ArchiTexture (ours)",
+          "Subset / coverage": "full-256",
+          "mIoU": "0.4611",
+          "ARI": "0.6966"
+        },
+        {
+          "group": "RWTD (natural route)",
+          "Method": "TextureSAM public checkpoint rerun",
+          "Subset / coverage": "common-253",
+          "mIoU": "0.4684",
+          "ARI": "0.6163"
+        },
+        {
+          "group": "RWTD (natural route)",
+          "Method": "ArchiTexture (ours)",
+          "Subset / coverage": "common-253",
+          "mIoU": "0.4645",
+          "ARI": "0.7013"
+        },
+        {
+          "group": "STLD (controlled synthetic route)",
+          "Method": "SAM2.1-small original rerun",
+          "Subset / coverage": "all-200, 199/200",
+          "mIoU": "0.3686",
+          "ARI": "0.5269"
+        },
+        {
+          "group": "STLD (controlled synthetic route)",
+          "Method": "TextureSAM public checkpoint rerun",
+          "Subset / coverage": "all-200, 182/200",
+          "mIoU": "0.4677",
+          "ARI": "0.6849"
+        },
+        {
+          "group": "STLD (controlled synthetic route)",
+          "Method": "ArchiTexture (ours)",
+          "Subset / coverage": "all-200, 200/200",
+          "mIoU": "0.6705",
+          "ARI": "0.7249"
+        },
+        {
+          "group": "STLD (controlled synthetic route)",
+          "Method": "TextureSAM public checkpoint rerun",
+          "Subset / coverage": "common-182",
+          "mIoU": "0.5140",
+          "ARI": "0.7526"
+        },
+        {
+          "group": "STLD (controlled synthetic route)",
+          "Method": "ArchiTexture (ours)",
+          "Subset / coverage": "common-182",
+          "mIoU": "0.7195",
+          "ARI": "0.7791"
+        },
+        {
+          "group": "ControlNet-stitched PTD (generator-based bridge route)",
+          "Method": "SAM2.1-small original rerun",
+          "Subset / coverage": "all-1742, 1742/1742",
+          "mIoU": "0.2770",
+          "ARI": "0.2213"
+        },
+        {
+          "group": "ControlNet-stitched PTD (generator-based bridge route)",
+          "Method": "TextureSAM public checkpoint rerun",
+          "Subset / coverage": "all-1742, 1739/1742",
+          "mIoU": "0.6425",
+          "ARI": "0.5510"
+        },
+        {
+          "group": "ControlNet-stitched PTD (generator-based bridge route)",
+          "Method": "ArchiTexture Stage-A (ours)",
+          "Subset / coverage": "all-1742, 1742/1742",
+          "mIoU": "0.6803",
+          "ARI": "0.6039"
+        },
+        {
+          "group": "CAID (domain-specific shoreline route)",
+          "Method": "SAM2.1-small original rerun",
+          "Subset / coverage": "all-3104, 3104/3104",
+          "mIoU": "0.2588",
+          "ARI": "0.2040"
+        },
+        {
+          "group": "CAID (domain-specific shoreline route)",
+          "Method": "TextureSAM public checkpoint rerun",
+          "Subset / coverage": "all-3104, 3063/3104",
+          "mIoU": "0.6691",
+          "ARI": "0.5080"
+        },
+        {
+          "group": "CAID (domain-specific shoreline route)",
+          "Method": "ArchiTexture Stage-A (ours)",
+          "Subset / coverage": "all-3104, 3104/3104",
+          "mIoU": "0.6677",
+          "ARI": "0.5745"
+        }
+      ]
+    },
+    {
+      "id": "tab:hypothesis_baselines",
+      "title": "RWTD hypothesis-isolation baselines under the same proposal-bank protocol",
+      "section": "main_paper",
+      "build": "rwtd_main_baselines",
+      "columns": [
+        "Method",
+        "mIoU",
+        "ARI"
+      ],
+      "public_sources": [
+        "source_data/rwtd_controls/release_proposal_bank_baselines_summary.csv",
+        "source_data/main_results/rwtd_architexture_full256_official.json"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/TextureSum2_paper/data/release_proposal_bank_baselines_summary.csv",
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/official_eval_full256.json"
+      ],
+      "notes": "The six baseline rows come from the proposal-bank baseline summary; the final row comes from the released full-256 official evaluator rerun.",
+      "rows": [
+        {
+          "Method": "Core only",
+          "mIoU": "0.4543",
+          "ARI": "0.6786"
+        },
+        {
+          "Method": "Repair only",
+          "mIoU": "0.4835",
+          "ARI": "0.6101"
+        },
+        {
+          "Method": "Rank only",
+          "mIoU": "0.4536",
+          "ARI": "0.4305"
+        },
+        {
+          "Method": "Union",
+          "mIoU": "0.4699",
+          "ARI": "0.1622"
+        },
+        {
+          "Method": "Intersection",
+          "mIoU": "0.2733",
+          "ARI": "0.2972"
+        },
+        {
+          "Method": "Lightweight reranker",
+          "mIoU": "0.4004",
+          "ARI": "0.3629"
+        },
+        {
+          "Method": "ArchiTexture final",
+          "mIoU": "0.4611",
+          "ARI": "0.6966"
+        }
+      ]
+    },
+    {
+      "id": "tab:proposal_swap",
+      "title": "Frozen-source transfer stress test",
+      "section": "main_paper",
+      "build": "proposal_source_swap",
+      "columns": [
+        "Dense rescue proposal source (frozen)",
+        "Full-256 mIoU / ARI",
+        "Common-253 mIoU / ARI"
+      ],
+      "public_sources": [
+        "source_data/rwtd_controls/release_proposal_source_swap.csv"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/TextureSum2_paper/data/release_proposal_source_swap.csv"
+      ],
+      "notes": "This table is rebuilt from the release proposal-source swap CSV.",
+      "rows": [
+        {
+          "Dense rescue proposal source (frozen)": "Released dense bank",
+          "Full-256 mIoU / ARI": "0.4611 / 0.6966",
+          "Common-253 mIoU / ARI": "0.4645 / 0.7013"
+        },
+        {
+          "Dense rescue proposal source (frozen)": "SAM2.1-large source swap",
+          "Full-256 mIoU / ARI": "0.5003 / 0.7048",
+          "Common-253 mIoU / ARI": "0.5005 / 0.7106"
+        }
+      ]
+    },
+    {
+      "id": "app:controlnet_secondary",
+      "title": "Secondary ControlNet-stitched PTD view",
+      "section": "appendix",
+      "build": "controlnet_secondary",
+      "columns": [
+        "Method",
+        "Subset / coverage",
+        "Direct mIoU / ARI",
+        "Invariant mIoU / ARI"
+      ],
+      "public_sources": [
+        "source_data/main_results/controlnet_partition_summary.json"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/experiments/perlin_controlnet_eval_20260312/full_0p3/eval_0p3/binary_partition_summary.json"
+      ],
+      "notes": "This table is rebuilt from the committed ControlNet partition summary.",
+      "rows": [
+        {
+          "Method": "TextureSAM 0.3 released checkpoint",
+          "Subset / coverage": "all-1742, 1739/1742",
+          "Direct mIoU / ARI": "0.4212 / 0.6446",
+          "Invariant mIoU / ARI": "0.6425 / 0.5510"
+        },
+        {
+          "Method": "ArchiTexture Stage-A (ours)",
+          "Subset / coverage": "all-1742, 1742/1742",
+          "Direct mIoU / ARI": "0.4993 / 0.6039",
+          "Invariant mIoU / ARI": "0.6803 / 0.6039"
+        },
+        {
+          "Method": "TextureSAM 0.3 released checkpoint",
+          "Subset / coverage": "common-1739",
+          "Direct mIoU / ARI": "0.4219 / 0.6457",
+          "Invariant mIoU / ARI": "0.6436 / 0.5519"
+        },
+        {
+          "Method": "ArchiTexture Stage-A (ours)",
+          "Subset / coverage": "common-1739",
+          "Direct mIoU / ARI": "0.4993 / 0.6039",
+          "Invariant mIoU / ARI": "0.6803 / 0.6039"
+        }
+      ]
+    },
+    {
+      "id": "app:caid_secondary",
+      "title": "CAID under the same partition-invariant protocol used in the main paper",
+      "section": "appendix",
+      "build": "caid_secondary",
+      "columns": [
+        "Method",
+        "Subset / coverage",
+        "Invariant mIoU / ARI"
+      ],
+      "public_sources": [
+        "source_data/main_results/caid_partition_summary.json"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/experiments/caid_eval_20260313/full_0p3/eval_0p3/binary_partition_summary.json"
+      ],
+      "notes": "This table is rebuilt from the committed CAID partition summary.",
+      "rows": [
+        {
+          "Method": "TextureSAM public checkpoint rerun",
+          "Subset / coverage": "all-3104, 3063/3104",
+          "Invariant mIoU / ARI": "0.6691 / 0.5080"
+        },
+        {
+          "Method": "ArchiTexture Stage-A (ours)",
+          "Subset / coverage": "all-3104, 3104/3104",
+          "Invariant mIoU / ARI": "0.6677 / 0.5745"
+        },
+        {
+          "Method": "TextureSAM public checkpoint rerun",
+          "Subset / coverage": "common-3063",
+          "Invariant mIoU / ARI": "0.6780 / 0.5148"
+        },
+        {
+          "Method": "ArchiTexture Stage-A (ours)",
+          "Subset / coverage": "common-3063",
+          "Invariant mIoU / ARI": "0.6677 / 0.5745"
+        }
+      ]
+    },
+    {
+      "id": "app:compact_repro",
+      "title": "Compact reproducibility summary for the configurations used in the paper",
+      "section": "appendix",
+      "build": "manifest_rows",
+      "columns": [
+        "Item",
+        "Value"
+      ],
+      "public_sources": [],
+      "workspace_sources": [
+        "../TextureSAM-v2/TextureSum2_paper/appendix_body.tex",
+        "../TextureSAM-v2/TextureSum2_paper/SUPPLEMENT_CONFIG_TABLE.md"
+      ],
+      "notes": "Static reproducibility summary from the final appendix table.",
+      "rows": [
+        {
+          "Item": "External training data",
+          "Value": "PTD only for the RWTD route; Brodatz-native synthetic supervision for STLD"
+        },
+        {
+          "Item": "Encoder training data",
+          "Value": "80,000 train / 20,000 val images per synthetic source"
+        },
+        {
+          "Item": "RWTD benchmark usage",
+          "Value": "Evaluation only; no RWTD-label training or hyperparameter search"
+        },
+        {
+          "Item": "Proposal source",
+          "Value": "Frozen SAM-style automatic masks"
+        },
+        {
+          "Item": "RWTD/STLD deployed model",
+          "Value": "Swin-Base masked-region encoder + learned merge/core/repair modules"
+        },
+        {
+          "Item": "ControlNet / CAID deployed model",
+          "Value": "PTD-trained `small_pre_ring_hi` Stage-A bundle"
+        },
+        {
+          "Item": "Primary evaluator",
+          "Value": "Official upstream no-aggregation evaluator on RWTD; route-matched evaluators elsewhere"
+        },
+        {
+          "Item": "Comparator family",
+          "Value": "Raw SAM2.1-small and reproduced/public TextureSAM checkpoints"
+        }
+      ]
+    },
+    {
+      "id": "app:failure_audit",
+      "title": "Full-256 failure-audit summary for the released RWTD decision rule",
+      "section": "appendix",
+      "build": "failure_audit",
+      "columns": [
+        "Setting",
+        "Resc.",
+        "Off-succ.",
+        "Hurt-any",
+        "Wrong",
+        "Unsafe",
+        "Mean DeltaIoU",
+        "Top-k recov."
+      ],
+      "public_sources": [
+        "source_data/rwtd_audit/audit_summary.json",
+        "source_data/rwtd_audit/rescue_reliability_summary.json",
+        "source_data/rwtd_audit/wrong_partition_summary.json",
+        "source_data/rwtd_audit/release_per_image.csv"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/audit/audit_summary.json",
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/audit/rescue_reliability_summary.json",
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/audit/wrong_partition_summary.json",
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/texturesam2_acute_learned_rescue/per_image.csv"
+      ],
+      "notes": "This row is rebuilt from the full-256 audit summaries plus the committed per-image release CSV for top-k recoverability.",
+      "rows": [
+        {
+          "Setting": "Baseline decision rule",
+          "Resc.": "21",
+          "Off-succ.": "61.9%",
+          "Hurt-any": "38.1%",
+          "Wrong": "4",
+          "Unsafe": "6",
+          "Mean DeltaIoU": "+0.2247",
+          "Top-k recov.": "141/256"
+        }
+      ]
+    },
+    {
+      "id": "app:rwtd_controls",
+      "title": "RWTD hypothesis-isolation baselines under the same proposal-bank protocol",
+      "section": "appendix",
+      "build": "rwtd_appendix_baselines",
+      "columns": [
+        "Method",
+        "Full-256 mIoU / ARI",
+        "Common-253 mIoU / ARI",
+        "Key behavior"
+      ],
+      "public_sources": [
+        "source_data/rwtd_controls/release_proposal_bank_baselines_summary.csv",
+        "source_data/main_results/rwtd_architexture_full256_official.json",
+        "source_data/main_results/rwtd_architexture_common253_official.json"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/TextureSum2_paper/data/release_proposal_bank_baselines_summary.csv",
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/official_eval_full256.json",
+        "../TextureSAM-v2/reports/release_swinb_full256_audit/official_eval_common253.json"
+      ],
+      "notes": "The appendix view extends the main hypothesis-isolation table with common-253 numbers and interpretive behavior labels.",
+      "rows": [
+        {
+          "Method": "Compatibility-only core",
+          "Full-256 mIoU / ARI": "0.4543 / 0.6786",
+          "Common-253 mIoU / ARI": "0.4558 / 0.6812",
+          "Key behavior": "conservative, consistency-preserving"
+        },
+        {
+          "Method": "Repair-only",
+          "Full-256 mIoU / ARI": "0.4835 / 0.6101",
+          "Common-253 mIoU / ARI": "0.4876 / 0.6148",
+          "Key behavior": "coverage-seeking, consistency drop"
+        },
+        {
+          "Method": "Ranking-only",
+          "Full-256 mIoU / ARI": "0.4536 / 0.4305",
+          "Common-253 mIoU / ARI": "0.4559 / 0.4333",
+          "Key behavior": "severe partition errors"
+        },
+        {
+          "Method": "Union heuristic",
+          "Full-256 mIoU / ARI": "0.4699 / 0.1622",
+          "Common-253 mIoU / ARI": "0.4706 / 0.1622",
+          "Key behavior": "over-merge collapse"
+        },
+        {
+          "Method": "Intersection heuristic",
+          "Full-256 mIoU / ARI": "0.2733 / 0.2972",
+          "Common-253 mIoU / ARI": "0.2766 / 0.3007",
+          "Key behavior": "under-coverage collapse"
+        },
+        {
+          "Method": "Lightweight reranker",
+          "Full-256 mIoU / ARI": "0.4004 / 0.3629",
+          "Common-253 mIoU / ARI": "0.4027 / 0.3642",
+          "Key behavior": "unstable tradeoff"
+        },
+        {
+          "Method": "ArchiTexture final",
+          "Full-256 mIoU / ARI": "0.4611 / 0.6966",
+          "Common-253 mIoU / ARI": "0.4645 / 0.7013",
+          "Key behavior": "best consistency with competitive coverage"
+        }
+      ]
+    },
+    {
+      "id": "app:proposal_swap_detail",
+      "title": "Frozen-source transfer stress test with appendix notes",
+      "section": "appendix",
+      "build": "proposal_source_swap_appendix",
+      "columns": [
+        "Dense rescue proposal source (frozen)",
+        "Full-256 mIoU / ARI",
+        "Common-253 mIoU / ARI",
+        "Notes"
+      ],
+      "public_sources": [
+        "source_data/rwtd_controls/release_proposal_source_swap.csv"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/TextureSum2_paper/data/release_proposal_source_swap.csv"
+      ],
+      "notes": "Appendix version of the proposal-source swap table with the release note column preserved.",
+      "rows": [
+        {
+          "Dense rescue proposal source (frozen)": "Released dense bank (official0.3 setup)",
+          "Full-256 mIoU / ARI": "0.4611 / 0.6966",
+          "Common-253 mIoU / ARI": "0.4645 / 0.7013",
+          "Notes": "Main-paper release numbers"
+        },
+        {
+          "Dense rescue proposal source (frozen)": "Source swap: SAM2.1-large bank",
+          "Full-256 mIoU / ARI": "0.5003 / 0.7048",
+          "Common-253 mIoU / ARI": "0.5005 / 0.7106",
+          "Notes": "Same frozen consolidation weights; only dense rescue candidates change"
+        }
+      ]
+    },
+    {
+      "id": "app:confidence_summary",
+      "title": "Official-score confidence summary for the RWTD comparisons reported in the paper",
+      "section": "appendix",
+      "build": "rwtd_confidence_export",
+      "columns": [
+        "Setting",
+        "Subset",
+        "mIoU",
+        "95% CI (mIoU)",
+        "ARI",
+        "95% CI (ARI)",
+        "n_eff"
+      ],
+      "public_sources": [
+        "source_data/manuscript_exports/rwtd_confidence_summary.json"
+      ],
+      "workspace_sources": [
+        "../TextureSAM-v2/TextureSum2_paper/appendix_body.tex",
+        "../TextureSAM-v2/TextureSum2_paper/neurips_supplement.tex"
+      ],
+      "notes": "The CI endpoints come from the final manuscript export. See the export note in source_data/manuscript_exports/rwtd_confidence_summary.json for why this table is not fully recomputed from raw bootstrap samples inside the public repo."
+    }
+  ]
+}

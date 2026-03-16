@@ -1,0 +1,80 @@
+{
+  "benchmark_root": "/home/galoren/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/benchmark",
+  "delta_vs_union": {
+    "covered_ari": 0.6059784260527842,
+    "covered_miou": 0.46514623071995886
+  },
+  "methods": {
+    "architexture": {
+      "all": {
+        "ari": 0.7249480145082576,
+        "count": 200,
+        "miou": 0.6705275124719756
+      },
+      "covered": {
+        "ari": 0.7791096027513711,
+        "count": 182,
+        "miou": 0.7194616806936366
+      }
+    },
+    "handcrafted": {
+      "all": {
+        "ari": 0.3787880612661465,
+        "count": 200,
+        "miou": 0.3507111987320252
+      },
+      "covered": {
+        "ari": 0.39871404973806235,
+        "count": 182,
+        "miou": 0.36801518207830625
+      }
+    },
+    "proposal_union": {
+      "all": {
+        "ari": 0.1731311766985869,
+        "count": 182,
+        "miou": 0.2543154499736777
+      },
+      "covered": {
+        "ari": 0.1731311766985869,
+        "count": 182,
+        "miou": 0.2543154499736777
+      }
+    },
+    "ptd_heuristic": {
+      "all": {
+        "ari": 0.38769203761937737,
+        "count": 200,
+        "miou": 0.35766244534050295
+      },
+      "covered": {
+        "ari": 0.4084986391372172,
+        "count": 182,
+        "miou": 0.37565391461509506
+      }
+    }
+  },
+  "num_images": 200,
+  "proposal_union_covered": 182,
+  "proposal_union_missing": 18,
+  "proposal_union_missing_ids": [
+    6,
+    10,
+    17,
+    33,
+    38,
+    65,
+    69,
+    72,
+    107,
+    142,
+    146,
+    149,
+    150,
+    158,
+    164,
+    181,
+    187,
+    189
+  ]
+}

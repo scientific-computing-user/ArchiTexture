@@ -1,0 +1,18 @@
+{
+  "pred_folder": "/home/galoren/TextureSAM-v2/experiments/sam2_original_baselines_20260313/rwtd/masks",
+  "gt_folder": "/home/galoren/TextureSAM_upstream_20260303/Kaust256/labeles",
+  "noagg_official": {
+    "script": "eval_no_agg_masks.py (official import)",
+    "num_gt_images": 256,
+    "num_pred_image_ids": 256,
+    "num_gt_instances_evaluated": 512,
+    "overall_average_iou": 0.16145866726502756,
+    "overall_average_rand_index": 0.21831960989768526
+  },
+  "agg_like_custom": {
+    "num_images": 256,
+    "mean_iou": 0.8625501516788764,
+    "mean_iou_inverse": 0.8309127051080183,
+    "mean_iou_rwtd_average": 0.8467314283934475
+  }
+}

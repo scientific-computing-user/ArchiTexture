@@ -1,0 +1,32 @@
+{
+  "benchmark_root": "/home/galoren/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/benchmark",
+  "methods": {
+    "ArchiTexture": {
+      "all": {
+        "ari": 0.7249480145082576,
+        "miou": 0.6705275124719756
+      },
+      "coverage": 200,
+      "covered": {
+        "ari": 0.7249480145082576,
+        "miou": 0.6705275124719756
+      },
+      "mean_mask_count_on_present": 1.0,
+      "mode": "single_mask"
+    },
+    "TextureSAM0p3": {
+      "all": {
+        "ari": 0.6849092894430734,
+        "miou": 0.467695247407647
+      },
+      "coverage": 182,
+      "covered": {
+        "ari": 0.7526475708165642,
+        "miou": 0.5139508213270846
+      },
+      "mean_mask_count_on_present": 2.0274725274725274,
+      "mode": "mask_bank"
+    }
+  },
+  "num_images": 200
+}

@@ -1,0 +1,19 @@
+{
+  "benchmark_root": "/home/galoren/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/benchmark",
+  "methods": {
+    "SAM2_original": {
+      "all": {
+        "ari": 0.5269121551062448,
+        "miou": 0.36860694577008873
+      },
+      "coverage": 199,
+      "covered": {
+        "ari": 0.5295599548806481,
+        "miou": 0.37045924197998864
+      },
+      "mean_mask_count_on_present": 10.49748743718593,
+      "mode": "mask_bank"
+    }
+  },
+  "num_images": 200
+}

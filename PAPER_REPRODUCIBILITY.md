@@ -14,6 +14,17 @@ The important thing to understand is that the local paper workspace used for the
 
 If you only read one file after `README.md`, read this one.
 
+## GitHub-Only Table Reproduction
+
+The public repo now carries a paper-table bundle under [`paper_repro/`](paper_repro/).
+
+- Entry point: [paper_repro/README.md](paper_repro/README.md)
+- Rendered tables: [paper_repro/generated/paper_tables.md](paper_repro/generated/paper_tables.md)
+- Machine-readable map: `paper_repro/table_manifest.json`
+- Verifier: `python paper_repro/scripts/build_paper_tables.py --check --write`
+
+This bundle is the answer to the narrow question, "Can I reproduce the table values from the GitHub repo itself?" It works from committed summary artifacts and flags drift against the final paper rows. The remainder of this file covers the heavier companion-workspace routes used to regenerate those summaries from archived experiment outputs.
+
 ## Workspace Roots
 
 | Local path | Role |
