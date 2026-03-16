@@ -1,328 +1,156 @@
 # ArchiTexture
 
-ArchiTexture is a resumable Python pipeline for mining RWTD-like texture-transition images from dense segmentation datasets.
+**Paper title:** *Real-World Texture Segmentation by Consolidating Fragmented Evidence*
 
-This repo includes:
-- The full mining codebase (Stage A/B/C/D, adapters, scoring, reporting, review UI).
-- A **GitHub Pages-ready static review site** under `docs/review/` (full exported bundle).
+ArchiTexture is a frozen-proposal texture-segmentation framework: it keeps the proposal engine fixed, learns compatibility-aware consolidation above the proposal bank, and evaluates that decision layer across real, synthetic, bridge, and domain-specific routes.
 
-## Features
+## Important Repository Note
 
-- Disk-budget batching (`--batch_budget_gb`) so each batch stays within storage limits.
-- Multi-stage narrowing pipeline:
-  - Stage A: mask-statistics prefilter (multiprocess).
-  - Stage B: CLIP/SigLIP text-image retrieval (open_clip preferred, transformers fallback).
-  - Stage C: optional caption keyword filtering.
-  - Stage D: optional pluggable VLM scoring backend.
-- Crash-safe checkpoints per batch.
-- Per-batch and merged manifests (Parquet + CSV).
-- `selected/` exports by symlink (or copy fallback).
-- QA artifacts: contact sheets, histograms, stage summaries.
-- Static review website per batch with sortable gallery and detail panel:
-  - original image
-  - annotation mask visualization
-  - texture-boundary overlay
-  - selection rationale and stage metrics
+This repository is now documented as the **public paper entrypoint**.
 
-## Hosted Review (Public Site)
+- The exact local paper experiment workspace used in this archive lives in `../TextureSAM-v2`.
+- The manuscript package lives in `../TextureSAM-v2/TextureSum2_paper`.
+- The official evaluator and SAM2 source used by the paper live in `../TextureSAM_upstream_20260303`.
+- The public galleries referenced by the manuscript live in `../rwtd_miner_public_site`.
+- The full route-to-script and artifact map is in [PAPER_REPRODUCIBILITY.md](PAPER_REPRODUCIBILITY.md).
 
-Code, data-processing, and training assets are hosted in this repository:
-- `https://github.com/scientific-computing-user/ArchiTexture`
+This repo still contains the RWTD-mining/review code under `rwtd_miner/` and the bundled static review site under `docs/review/`, but the README below is intentionally **paper-first** so the project is understandable without digging through terminal history.
 
-The public static review website is published separately at:
+## Quick Links
 
-- `https://scientific-computing-user.github.io/rwtd-texture-miner-site/review/`
-- Public site repo: `https://github.com/scientific-computing-user/rwtd-texture-miner-site`
+- Paper reproducibility map: [PAPER_REPRODUCIBILITY.md](PAPER_REPRODUCIBILITY.md)
+- Local static review bundle in this repo: `docs/review/index.html`
+- Public ArchiTexture results hub: `https://scientific-computing-user.github.io/rwtd-texture-miner-site/`
+- Public code repo: `https://github.com/scientific-computing-user/ArchiTexture`
+- Public gallery repo: `https://github.com/scientific-computing-user/rwtd-texture-miner-site`
 
-Local preview:
-- Open `docs/review/index.html` directly.
+## Project At A Glance
 
-The bundled site in `docs/review` is fully static (no backend) and includes:
-- thumbnails
-- original images
-- mask visualizations
-- texture-boundary overlays
-- sortable/filterable gallery and detail panel
+![ArchiTexture qualitative teaser](docs/paper_figures/fig_teaser_success.png)
 
-## Folder Conventions (Local adapter)
+ArchiTexture is built around four ideas:
 
-Expected default layout under `input_root`:
+1. Keep the proposal source fixed so gains are attributable to the consolidation layer rather than a stronger segmentation backbone.
+2. Train the decision layer from scalable synthetic supervision instead of fitting RWTD labels.
+3. Evaluate the same formulation across four routes: RWTD, STLD, ControlNet-stitched PTD, and CAID.
+4. Report both coverage-like behavior and partition consistency, because texture segmentation failures are often commitment failures rather than proposal-recall failures.
 
-- `images/` -> `.jpg/.jpeg/.png/.webp`
-- `annotations/` -> `.json` (one file per image or shard JSONs)
+## Main Reported Results
 
-The adapter supports:
+The paper uses different metric views depending on the route. The table below lists the primary view used for the main comparison in the current local artifact bundle.
 
-1. One JSON per image (`annotations/<image_id>.json`)
-2. Shard JSONs (`annotations/*.json`) with common SA-1B-like schemas (best effort).
+| Route | Primary evaluation view | ArchiTexture | Comparator | Coverage note |
+| --- | --- | --- | --- | --- |
+| RWTD | Official no-agg, common-253 matched rerun | `0.4645 / 0.7013` | TextureSAM `0.4684 / 0.6163` | matched on the exact 253 IDs where the reproduced TextureSAM export emits masks |
+| RWTD | Official no-agg, full-256 release | `0.4611 / 0.6966` | n/a | full released ArchiTexture export |
+| STLD | Direct foreground, all-200 | `0.6705 / 0.7249` | TextureSAM `0.4677 / 0.6849` | ArchiTexture covers all 200 images; TextureSAM covers 182 |
+| ControlNet-stitched PTD | Partition-invariant, all-1742 | `0.6803 / 0.6039` | TextureSAM `0.6425 / 0.5510` | ArchiTexture covers all 1742 images; TextureSAM covers 1739 |
+| CAID | Partition-invariant, all-3104 | `0.6677 / 0.5745` | TextureSAM `0.6691 / 0.5080` | ArchiTexture covers all 3104 images; TextureSAM covers 3063 |
 
-## Install
+Values are shown as `mIoU / ARI`.
 
-```bash
-cd /path/to/ArchiTexture
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
+## Core Figures
 
-## Profile-Based Runs (Recommended)
+### Real-to-synthetic supervision bridge
 
-Create merged runtime config from base + profile:
+![PTD to RWTD bridge](docs/paper_figures/fig_ptd_rwtd_bridge.png)
 
-```bash
-python scripts/merge_config.py \
-  --base config.yaml \
-  --profile configs/profiles/imac_cpu.yaml \
-  --out .tmp/config_imac_cpu.yaml
-```
+This figure captures the paper's supervision logic: RWTD is the evaluation target, PTD supplies scalable synthetic supervision, and the synthetic curriculum is shaped to reflect the real failure factors that matter on RWTD.
 
-Server-ready bootstrap:
+### Consolidation logic above a frozen proposal bank
 
-```bash
-bash scripts/bootstrap_env.sh --profile server_rtx3090_fast
-```
+![Consolidation logic](docs/paper_figures/fig_consolidation_logic.png)
 
-One-command bootstrap + run:
+The main claim is architectural rather than cosmetic: the gain comes from compatibility reasoning, conservative core extraction, and selective repair above a fixed proposal bank.
 
-```bash
-bash scripts/bootstrap_and_run.sh \
-  --profile server_rtx3090_fast \
-  --out /path/to/ade20k_eval \
-  --skip_download
-```
+### Where the RWTD gain comes from
 
-Run ADE20K with CLIP + VLM using a profile:
+![Targeted rescue bins](docs/paper_figures/fig_targeted_rescue_bins.png)
 
-```bash
-bash scripts/run_ade20k_rwtd.sh \
-  --profile server_rtx3090_fast \
-  --out /path/to/ade20k_eval \
-  --skip_download
-```
+The gain is not uniformly distributed. It is concentrated on the low-coverage failure slice where rescue is actually needed.
 
-Migration + handoff docs:
-- `SERVER_MIGRATION.md`
-- `CODEX_SERVER_HANDOFF.md`
-- `SERVER_NON_ADE20K_SCOPE.md` (next-dataset scope, time estimates, server-only download plan)
-- `SERVER_START_HERE.md` (VLM-first server mission and execution order)
+### Difficulty slices on RWTD
 
-Server GitHub push setup scripts:
-- `scripts/setup_server_github_auth.sh`
-- `scripts/check_server_github_push.sh`
-- `scripts/finalize_dataset_and_publish.sh` (after each dataset run: refresh review bundle + commit/push + progress notice)
+![RWTD difficulty breakdown](docs/paper_figures/fig_rwtd_difficulty_breakdown.png)
 
-Resume context quickly (useful after moving to another machine):
+The error profile is organized by GT geometry rather than just headline score, which makes the remaining failure modes easier to inspect and reproduce.
+
+## Exact Local Artifact Layout Used For The Paper
+
+If you are working inside the same workspace/archive as this repo, these are the paths that matter:
+
+- `../TextureSAM-v2`
+  Main paper experiment workspace and the source of truth for the route-specific experiments.
+- `../TextureSAM-v2/TextureSum2_paper`
+  Manuscript source, paper figures, paper tables, Overleaf exports, and release-ready JSON/CSV artifacts.
+- `../TextureSAM_upstream_20260303`
+  Official `eval_no_agg_masks.py` evaluator and upstream SAM2 code used for reproduced baseline inference/evaluation.
+- `../rwtd_miner_public_site`
+  Public GitHub Pages galleries referenced by the paper footnotes.
+- `./rwtd_miner`
+  The mining/review pipeline retained in this repo.
+
+## Minimal Rebuild Commands
+
+If the companion workspace `../TextureSAM-v2` exists, the following commands rebuild the main paper-side summaries from archived outputs:
 
 ```bash
-bash scripts/codex_resume.sh
+python ../TextureSAM-v2/scripts/build_strong_accept_audit.py
+python ../TextureSAM-v2/scripts/build_e2e_subset_report.py
+python ../TextureSAM-v2/scripts/build_reviewer_mitigation_pack.py
+python ../TextureSAM-v2/scripts/build_release_appendix_tables.py
+python ../TextureSAM-v2/scripts/build_reviewer_followup_pack.py
+python ../TextureSAM-v2/scripts/build_rwtd_difficulty_breakdown.py
 ```
 
-Plan/download the non-ADE20K dataset scope on server:
+To recompute the official RWTD score for the released full-256 ArchiTexture export:
 
 ```bash
-bash scripts/prepare_non_ade20k_server.sh --root /data/rwtd_datasets --mode plan
-bash scripts/prepare_non_ade20k_server.sh --root /data/rwtd_datasets --mode download_public
+python ../TextureSAM-v2/scripts/eval_upstream_texture_metrics.py \
+  --pred-folder ../TextureSAM-v2/reports/release_swinb_full256_audit/official_export \
+  --gt-folder ../TextureSAM_upstream_20260303/Kaust256/labeles \
+  --upstream-root ../TextureSAM_upstream_20260303 \
+  --out-json ../TextureSAM-v2/reports/release_swinb_full256_audit/official_eval_full256.json
 ```
 
-Alternative public sources for Pascal Context + BSDS500:
+To recompute the strict matched RWTD comparison against the reproduced TextureSAM export:
 
 ```bash
-bash scripts/prepare_pascal_bsds_alternatives.sh --root /home/galoren/data/rwtd_datasets --mode probe
-bash scripts/prepare_pascal_bsds_alternatives.sh --root /home/galoren/data/rwtd_datasets --mode download
+python ../TextureSAM-v2/scripts/eval_upstream_texture_metrics.py \
+  --pred-folder ../TextureSAM-v2/reports/release_swinb_full256_audit/official_export_common253 \
+  --gt-folder ../TextureSAM_upstream_20260303/Kaust256/labeles \
+  --upstream-root ../TextureSAM_upstream_20260303 \
+  --out-json ../TextureSAM-v2/reports/release_swinb_full256_audit/official_eval_common253.json
 ```
 
-Publish progress after each finished dataset (website + git updates):
+For the full route-by-route script map, archived output roots, and figure builders, see [PAPER_REPRODUCIBILITY.md](PAPER_REPRODUCIBILITY.md).
 
-```bash
-bash scripts/finalize_dataset_and_publish.sh \
-  --dataset_id <dataset_id> \
-  --run_dir <dataset_run_dir> \
-  --public_repo /home/<user>/rwtd_miner_public_site
-```
+## Route Summary
 
-## CLI
+| Route | Companion workspace root | Main entrypoints |
+| --- | --- | --- |
+| RWTD | `../TextureSAM-v2/reports/release_swinb_full256_audit` and `../TextureSAM-v2/reports/strict_ptd_*` | `run_official_texturesam_inference.py`, `run_strict_ptd_v3.py`, `run_strict_ptd_v8_partition.py`, `run_strict_ptd_v7_dualgate.py`, `run_strict_ptd_v9_v7_v8_gate.py`, `run_strict_ptd_v11_dense_rescue.py` |
+| STLD | `../TextureSAM-v2/experiments/khan_synthetic_gallery_20260312` | `build_khan_synthetic_benchmark.py`, `run_gallery.sh`, `eval_stld_direct.py`, `publish_khan_synthetic_gallery.py` |
+| ControlNet-stitched PTD | `../TextureSAM-v2/experiments/perlin_controlnet_eval_20260312` | `run_stagea_hi_eval.sh`, `eval_binary_partition_maskbank.py`, `publish_controlnet_stitched_gallery.py` |
+| CAID | `../TextureSAM-v2/experiments/caid_eval_20260313` | `build_caid_binary_benchmark.py`, `run_stagea_eval.sh`, `eval_binary_partition_maskbank.py`, `publish_caid_gallery.py` |
 
-Build index:
+## Public Artifacts
 
-```bash
-python -m rwtd_miner.cli index \
-  --input_root /path/to/sa1b \
-  --out /path/to/out \
-  --config /path/to/ArchiTexture/config.yaml
-```
+- RWTD gallery: `https://scientific-computing-user.github.io/rwtd-texture-miner-site/texturesam2_ai_gallery/index.html`
+- STLD gallery: `https://scientific-computing-user.github.io/rwtd-texture-miner-site/khan_synthetic_gallery/`
+- ControlNet-stitched PTD gallery: `https://scientific-computing-user.github.io/rwtd-texture-miner-site/controlnet_stitched_gallery/`
+- CAID gallery: `https://scientific-computing-user.github.io/rwtd-texture-miner-site/caid_gallery/`
+- Static review bundle stored in this repo: `docs/review/index.html`
 
-Run one batch:
+## What This Repo Still Contains
 
-```bash
-python -m rwtd_miner.cli run \
-  --input_root /path/to/sa1b \
-  --out /path/to/out \
-  --batch 0 \
-  --batch_budget_gb 5
-```
+The code in this checkout is still useful, but it is not the whole paper workspace:
 
-Run first N batches:
+- `rwtd_miner/`
+  Resumable mining/review pipeline for RWTD-like texture-transition images from dense segmentation datasets.
+- `docs/review/`
+  A bundled static review site generated from that pipeline.
+- `scripts/`
+  Bootstrap, server, publishing, and dataset-preparation helpers for the mining/review pipeline.
 
-```bash
-python -m rwtd_miner.cli run \
-  --input_root /path/to/sa1b \
-  --out /path/to/out \
-  --max_batches 10 \
-  --batch_budget_gb 5
-```
-
-Dry run (Stage A + B only):
-
-```bash
-python -m rwtd_miner.cli run \
-  --input_root /path/to/sa1b \
-  --out /path/to/out \
-  --skip_vlm
-```
-
-Pilot 100 samples from SA-1B shard + review website:
-
-```bash
-python -m rwtd_miner.cli pilot100 \
-  --out /path/to/pilot_out \
-  --num_images 100 \
-  --batch_budget_gb 0.8 \
-  --skip_vlm
-```
-
-Calibrate thresholds by combining SA-1B pilot with the original RWTD (`Kaust256`) from TextureSAM:
-
-```bash
-python -m rwtd_miner.cli calibrate_rwtd \
-  --pilot_out /path/to/pilot_out \
-  --out /path/to/calibration_out \
-  --max_rwtd_images 256 \
-  --selected_min 60 \
-  --borderline_min 50 \
-  --sync_html_to /Users/galoren/TextureData/outputs/html_review
-```
-
-Run full ADE20K test and count images passing the RWTD-calibrated minimum bar:
-
-```bash
-python -m rwtd_miner.cli ade20k_full \
-  --out /path/to/ade20k_eval \
-  --selected_min 60 \
-  --borderline_min 50 \
-  --review_limit 1500 \
-  --sync_html_to /Users/galoren/TextureData/outputs/html_review
-```
-
-Run ADE20K with CLIP + VLM (local BLIP VQA backend):
-
-```bash
-python -m rwtd_miner.cli ade20k_full \
-  --out /path/to/ade20k_eval_multimodal \
-  --skip_download \
-  --enable_clip \
-  --enable_vlm \
-  --vlm_backend hf_blip_vqa \
-  --vlm_top_n 700 \
-  --selected_min 60 \
-  --borderline_min 50
-```
-
-Run ADE20K with CLIP + VLM (external command backend):
-
-```bash
-export GEMINI_API_KEY="YOUR_KEY"
-python -m rwtd_miner.cli ade20k_full \
-  --out /path/to/ade20k_eval_multimodal \
-  --skip_download \
-  --enable_clip \
-  --enable_vlm \
-  --vlm_backend external_command \
-  --vlm_external_command "python /absolute/path/scripts/vlm_wrapper_gemini.py --model gemini-2.5-flash-lite" \
-  --vlm_top_n 700 \
-  --selected_min 60 \
-  --borderline_min 50
-```
-
-## Output Structure
-
-`out/`
-
-- `index/`
-  - `image_index.parquet`
-  - `batch_assignments.parquet`
-- `batches/batch_<id>/`
-  - `batch_manifest.parquet`
-  - `batch_manifest.csv`
-  - `checkpoint.json`
-  - `selected/`
-  - `borderline/`
-  - `review/`
-    - `index.html`
-    - `data.json`
-    - `thumbnails/`
-    - `masks/`
-    - `overlays/`
-  - `qa/`
-    - `summary.json`
-    - `score_histogram.png`
-    - `contact_sheet_top100.jpg`
-    - `stageB_pass_sample_grid.jpg`
-    - `stageB_fail_sample_grid.jpg`
-- `manifests/`
-  - `all_processed.parquet`
-  - `all_processed.csv`
-
-## GitHub Pages Workflow
-
-This repo ships `.github/workflows/pages.yml`:
-- builds Pages artifact from `docs/`
-- deploys to GitHub Pages on push to `main`
-
-## Notes
-
-- CPU-only is default. If CUDA/MPS is available and enabled in config, Stage B/C can use it.
-- Stage D is pluggable. Supported backends: `stub`, `hf_blip_vqa`, `hf_vlm_chat`, `external_command`.
-- Missing/invalid annotations are handled gracefully (`stageA_status=unknown`) with optional CLIP fallback.
-
-## Free Remote VLM (low local compute)
-
-If you want Stage D to stay fast/light locally, use remote inference via `external_command`.
-
-Included wrapper:
-
-- `scripts/vlm_wrapper_gemini.py`
-
-It reads `{"image_path": "...", "prompt": "..."}` from stdin and returns Stage-D JSON to stdout.
-
-Setup:
-
-```bash
-cd /path/to/ArchiTexture
-source .venv/bin/activate
-export GEMINI_API_KEY="YOUR_KEY"
-```
-
-Quick sanity test of wrapper contract:
-
-```bash
-echo '{"image_path":"/abs/path/sample.jpg","prompt":"Score this image and return JSON only."}' | \
-python /path/to/ArchiTexture/scripts/vlm_wrapper_gemini.py --model gemini-2.5-flash-lite
-```
-
-Use in config (`stage_d`):
-
-```yaml
-stage_d:
-  enabled: true
-  backend: external_command
-  external_command: "python /path/to/ArchiTexture/scripts/vlm_wrapper_gemini.py --model gemini-2.5-flash-lite"
-  score_top_n_from_stage_b: 700
-```
-
-Then run normally (without `--skip_vlm`).
-
-## Troubleshooting
-
-- If open_clip is unavailable, the code automatically falls back to transformers CLIP.
-- If pycocotools is unavailable, Stage A still works with annotation `area` fields and partial RLE fallback.
-- If Parquet dependencies are missing, CSV output still works.
+That legacy content is kept intact because it remains part of the broader ArchiTexture artifact story, but the paper-facing experiment source of truth for this local archive is the companion `../TextureSAM-v2` workspace documented in [PAPER_REPRODUCIBILITY.md](PAPER_REPRODUCIBILITY.md).
