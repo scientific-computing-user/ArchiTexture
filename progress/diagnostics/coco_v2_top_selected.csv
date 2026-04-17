@@ -1,8 +1,0 @@
-image_id,review_score,stageD_score_0_100,stageD_decision,thing_fraction,largest_thing_fraction,num_large_thing_instances,person_vehicle_animal_fraction,object_heavy_audit,thumb
-000000003255,100.0,36.0,not_match,0.00837216513492795,0.0012920007924271527,0,0.0068605242077881805,False,/home/galoren/data/rwtd_datasets/coco/rwtd_input_coco_stuff_valannot/images/000000003255.jpg
-000000019042,100.0,82.0,match,0.003690394442501885,0.0018999633488223176,0,0.003690394442501885,False,/home/galoren/data/rwtd_datasets/coco/rwtd_input_coco_stuff_valannot/images/000000019042.jpg
-000000028285,100.0,36.0,not_match,0.0015846753437752776,0.0015846753437752776,0,0.0,False,/home/galoren/data/rwtd_datasets/coco/rwtd_input_coco_stuff_valannot/images/000000028285.jpg
-000000032811,92.49704628307929,16.0,not_match,0.007466715678954201,0.007466715678954201,1,0.007466715678954201,False,/home/galoren/data/rwtd_datasets/coco/rwtd_input_coco_stuff_valannot/images/000000032811.jpg
-000000023230,92.25992711821551,16.0,not_match,0.005575221527128729,0.0021297867282372594,0,0.005575221527128729,False,/home/galoren/data/rwtd_datasets/coco/rwtd_input_coco_stuff_valannot/images/000000023230.jpg
-000000025593,92.09519520259103,16.0,not_match,0.0,0.0,0,0.0,False,/home/galoren/data/rwtd_datasets/coco/rwtd_input_coco_stuff_valannot/images/000000025593.jpg
-000000013774,86.93731771745638,16.0,not_match,0.005607348818125869,0.004842118288358402,0,0.004842118288358402,False,/home/galoren/data/rwtd_datasets/coco/rwtd_input_coco_stuff_valannot/images/000000013774.jpg

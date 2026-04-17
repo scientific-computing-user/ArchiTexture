@@ -1,5 +1,0 @@
-comparison,n_overlap_instances,delta_miou_mean,delta_ari_mean,iou_wins,iou_ties,iou_losses,iou_sign_p_two_sided,ari_wins,ari_ties,ari_losses,ari_sign_p_two_sided
-policy_minus_final,424,-0.0009,+0.0015,8,393,23,0.010674,9,393,22,0.029449
-policy_minus_core,417,+0.0057,+0.0174,13,390,14,1.000000,18,390,9,0.122078
-policy_minus_baseline,425,+0.0431,+0.1013,245,0,180,0.001872,321,0,104,0.000000
-final_minus_baseline,426,+0.0405,+0.0995,245,0,181,0.002233,321,0,105,0.000000

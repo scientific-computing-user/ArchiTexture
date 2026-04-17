@@ -1,30 +1,26 @@
-# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.so
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 .venv/
 venv/
+build/
+dist/
+*.egg-info/
 
-# OS/editor
+# OS / editor
 .DS_Store
-.vscode/
-.idea/
 
-# Runtime outputs (keep release docs only)
-_smoke/
-pilot100_run/
-ade20k_eval/
-ade20k_eval_multimodal/
-calibration_rwtd/
-review_ade_rwtd/
-review_ade_rwtd_test/
-.tmp/
+# LaTeX build products
+paper/*.aux
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.synctex.gz
+paper/*.fls
+paper/*.fdb_latexmk
 
-# Large caches
-.cache/
-*.mmap
-
-# Logs
-*.log
+# Local experiment outputs
+results/tmp/
+artifacts/

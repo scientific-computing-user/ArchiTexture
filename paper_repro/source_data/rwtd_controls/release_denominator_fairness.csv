@@ -1,4 +1,0 @@
-method,official_miou,official_ari,official_counted_instances,fixed512_miou,fixed512_ari,fixed512_instances,fixed_common253_miou,fixed_common253_ari,fixed_common253_instances,nonzero_overlap_instances
-baseline,0.4684,0.6163,506,0.4510,0.5934,512,0.4564,0.6005,506,493
-core,0.4543,0.6786,512,0.3797,0.5673,512,0.3801,0.5681,506,428
-final,0.4611,0.6966,512,0.3891,0.5877,512,0.3910,0.5904,506,432
