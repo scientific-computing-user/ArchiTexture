@@ -29,7 +29,7 @@ def main() -> None:
         ("Medoid single", bm["proposal_medoid_single"]["common253_miou"], bm["proposal_medoid_single"]["common253_ari"], "#b6b6b6"),
         ("Spectral split", bm["spectral_bipartition"]["common253_miou"], bm["spectral_bipartition"]["common253_ari"], "#9cc2e5"),
         ("Core only", om["core_v9"]["common253_miou"], om["core_v9"]["common253_ari"], "#7aa6d8"),
-        ("ArchiTexture", om["final_release"]["common253_miou"], om["final_release"]["common253_ari"], "#f39c34"),
+        ("Learned readout", om["final_release"]["common253_miou"], om["final_release"]["common253_ari"], "#f39c34"),
         ("Single oracle", om["single_proposal_oracle"]["common253_miou"], om["single_proposal_oracle"]["common253_ari"], "#4daf7c"),
         ("Top-k union oracle", om["topk_union_oracle"]["common253_miou"], om["topk_union_oracle"]["common253_ari"], "#57b88b"),
         ("Rescue oracle", om["rescue_candidate_oracle"]["common253_miou"], om["rescue_candidate_oracle"]["common253_ari"], "#2c9c69"),
@@ -65,8 +65,8 @@ def main() -> None:
         0.5,
         -0.02,
         (
-            f"Bank upper bound over final system: +{out_delta_miou:.3f} mIoU, +{out_delta_ari:.3f} ARI. "
-            "A single best frozen proposal already exceeds the learned system on both metrics."
+            f"Bank upper bound over current learned readout: +{out_delta_miou:.3f} mIoU, +{out_delta_ari:.3f} ARI. "
+            "A single best frozen proposal already exceeds the learned readout on both metrics."
         ),
         ha="center",
         fontsize=9,

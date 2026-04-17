@@ -6,7 +6,7 @@ This section addresses \textbf{RQ3} by asking what the generated masks already c
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.98\textwidth]{figures/fig_consolidation_logic.png}
-    \caption{Proposal-/mask-space exploration route for \textbf{RQ3}. Each frozen proposal $m_i$ is encoded as a hybrid texture descriptor $d_i$, a learned pair model merges compatible proposals into candidate components, a learned component scorer selects a conservative core $C^\star$, and on RWTD only a learned dense-rescue switch can replace $C^\star$ with a denser candidate. The route therefore tests what can be recovered from a fixed generated-mask bank rather than from backbone retraining.}
+    \caption{Proposal-/mask-space exploration in implementation form. Each frozen proposal $m_i$ is encoded as a hybrid texture descriptor $d_i$, a learned pair model merges compatible proposals into candidate components, a learned component scorer selects a conservative core $C^\star$, and on RWTD only a learned dense-rescue switch can replace $C^\star$ with a denser candidate. Relative to the feature-space route, this figure answers a different question: not what the frozen representation contains internally, but what can already be recovered from the generated mask bank itself.}
     \label{fig:proposal_logic}
 \end{figure*}
 

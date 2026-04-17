@@ -101,8 +101,8 @@ STLD_FINAL_MASKS = (
 STLD_BENCHMARK = TEXTURESAM_ROOT / "experiments" / "khan_synthetic_gallery_20260312" / "benchmark"
 STLD_PROMPTS = TEXTURESAM_ROOT / "experiments" / "khan_synthetic_gallery_20260312" / "promptstyle"
 
-CONTROLNET_FIG = WORKSPACE_ROOT / "paper_main" / "figures" / "fig_controlnet_bridge_examples.png"
-CAID_FIG = WORKSPACE_ROOT / "paper_main" / "figures" / "fig_caid_audit.png"
+CONTROLNET_FIG = WORKSPACE_ROOT / "TextureSAM-v2" / "TextureSum2_paper" / "figures" / "fig_controlnet_bridge_examples.png"
+CAID_FIG = WORKSPACE_ROOT / "TextureSAM-v2" / "TextureSum2_paper" / "figures" / "fig_caid_audit.png"
 
 
 def _load_font(size: int) -> ImageFont.ImageFont:
@@ -314,7 +314,7 @@ def _rwtd_row_specs() -> list[tuple[int, str]]:
     return [
         (186, "RWTD-186: weak singleton score, but conservative commitment recovers the correct partition."),
         (74, "RWTD-74: rescue repairs a collapsed core and closes most of the gap to the bank oracle."),
-        (308, "RWTD-308: a strong singleton exists in the bank, but the deployed stack abstains from it."),
+        (308, "RWTD-308: a strong singleton exists in the bank, but the current learned readout abstains from it."),
         (183, "RWTD-183: low-margin wrong-partition case; rescue flips a strong core into the opposite side."),
     ]
 

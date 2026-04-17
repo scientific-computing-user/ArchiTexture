@@ -24,5 +24,6 @@ This produces `paper/main.pdf`.
 - `appendix.tex`: appendix included after the references in the same PDF
 - `main.pdf`: prebuilt compiled manuscript
 - `scripts/build_appendix_assets.py`: appendix-asset builder retained from the paper round
+- `scripts/build_feature_summary_figure.py`: builder for the archived feature-summary figure
 
 The source is self-contained for the retained manuscript build.

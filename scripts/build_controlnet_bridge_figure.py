@@ -36,7 +36,7 @@ COLUMN_LABELS = [
     "Input",
     "GT partition",
     "TextureSAM union view",
-    "ArchiTexture Stage-A",
+    "Learned Stage-A readout",
 ]
 
 GT_COLOR = np.array([44, 170, 44], dtype=np.float32)
