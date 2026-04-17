@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+title: ArchiTexture
+message: If you use this repository, please cite the accompanying paper and software release.
+type: software
+authors:
+  - family-names: Oren
+    given-names: Gal
+repository-code: https://github.com/scientific-computing-user/ArchiTexture
+abstract: Proposal-space commitment above a frozen SAM proposal bank for texture partition recovery.
+license: MIT
