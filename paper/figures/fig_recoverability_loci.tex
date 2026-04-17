@@ -1,26 +1,30 @@
 \begin{figure*}[t]
 \centering
-\setlength{\tabcolsep}{8pt}
+\setlength{\tabcolsep}{10pt}
 \renewcommand{\arraystretch}{1.08}
-\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}m{0.34\textwidth}>{\raggedright\arraybackslash}m{0.62\textwidth}@{}}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}m{0.47\textwidth}>{\raggedright\arraybackslash}m{0.47\textwidth}@{}}
 \fbox{%
-\begin{minipage}[t][4.3cm][t]{0.31\textwidth}
-\textbf{Feature-space recovery} \\
+\begin{minipage}[t][4.4cm][t]{0.44\textwidth}
+\textbf{Feature-Space Exploration} \\
 \textbf{Frozen evidence:} multiscale SAM \texttt{backbone\_fpn} features. \\
-\textbf{Question:} Is texture partition structure already latent in the representation? \\
-\textbf{Readout:} pooled coarsest clustering, flip-averaging, positionality diagnostics. \\
-\textbf{Role in paper:} diagnostic probe only.
+\textbf{Question:} What texture structure is latent in the frozen representation? \\
+\textbf{Readout:} pooled coarse clustering, flip-averaging, scale and positionality controls.
 \end{minipage}}
 &
 \fbox{%
-\begin{minipage}[t][4.3cm][t]{0.58\textwidth}
-\textbf{Proposal-space recovery} \\
-\textbf{Frozen evidence:} SAM-style mask proposals. \\
-\textbf{Question:} If the bank already contains the right fragments, can a learned layer recover a coherent partition without retraining the proposal generator? \\
-\textbf{Readout:} compatibility reasoning, conservative core selection, and selective repair above the frozen bank. \\
-\textbf{Role in paper:} main operational contribution instantiated by \sys{}.
+\begin{minipage}[t][4.4cm][t]{0.44\textwidth}
+\textbf{Proposal-/Mask-Space Exploration} \\
+\textbf{Frozen evidence:} generated SAM-style proposal masks. \\
+\textbf{Question:} What texture structure is already present in the generated masks? \\
+\textbf{Readout:} proposal descriptors, compatibility reasoning, conservative component selection, optional RWTD rescue.
 \end{minipage}}
 \end{tabularx}
-\caption{Two recoverability loci in frozen SAM-style systems. The feature route asks whether texture structure is already latent in frozen features and is used only as a diagnostic probe. The proposal route is the main operational question of the paper: how much task value can be recovered by learning commitment above a frozen proposal bank. Both routes keep the underlying segmenter frozen.}
+\vspace{4pt}
+
+\fbox{%
+\begin{minipage}[t]{0.965\textwidth}
+\textbf{Joint question:} Together, these routes test whether texture understanding is present in frozen SAM and how it can be revealed without retraining the backbone or proposal generator.
+\end{minipage}}
+\caption{Two parallel evidence routes for the paper. Feature-space exploration inspects the frozen representation directly; proposal-/mask-space exploration inspects the generated mask bank. The two routes therefore ask complementary questions about the same frozen system: what texture structure remains latent in the features, and what texture structure has already been externalized into the masks.}
 \label{fig:recoverability_loci}
 \end{figure*}

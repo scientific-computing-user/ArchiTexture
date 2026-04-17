@@ -7,10 +7,10 @@
 
 \paragraph{Why include this appendix section?} The paper's main claim is scientific rather than systems-oriented, but two reviewer questions still matter: whether the gain depends mainly on a particular descriptor stack, and whether the decision layer is practical enough to deploy above a frozen bank. The tables in this section answer those questions directly. The descriptor ablation keeps the decision stack fixed while varying only the proposal descriptor in the descriptor-sensitive Stage-A layer; on RWTD, hybrid descriptors help clearly more than either single family, while STLD is noticeably less sensitive and sometimes slightly favors handcrafted cues on ARI. The practicality table then summarizes the actual bank sizes, rescue scale, and measured runtime profile of the deployed RWTD and STLD routes.
 
-\section{Feature-Space Diagnostic Evidence}
+\section{Feature-Space Evidence}
 \label{app:feature_provenance}
 
-The feature-space branch remains auxiliary. Its repository-backed artifacts come from the coarse-feature clustering bundles, the parity summaries, and the scale-probe study in the \texttt{research-site} tree. The key caveat is short and fixed throughout this appendix: the RWTD feature probe uses a 227-image public split rather than the official 256-image proposal-route evaluator, so this route is reported only as diagnostic evidence for where texture structure can already live inside frozen features.
+The feature-space route is reported under its archived probe protocol. Its repository-backed artifacts come from the coarse-feature clustering bundles, the parity summaries, and the scale-probe study in the \texttt{research-site} tree. The key caveat is short and fixed throughout this appendix: the RWTD feature probe does not use the official proposal-route evaluator, so this route is read as evidence for where texture structure can already live inside frozen features rather than merged into the matched proposal-route tables.
 
 \begin{figure*}[t]
     \centering
@@ -29,11 +29,11 @@ The feature-space branch remains auxiliary. Its repository-backed artifacts come
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.98\textwidth]{figures/fig_feature_scale_diagnostics.png}
-    \caption{Archived scale and gating diagnostics from the feature probe. Left: mean ARI by run. Middle: learned all-scale and coarse-plus-mid gate weights still place most mass on the coarsest level. Right: single-scale readouts show that coarse features dominate, while native fine-grid clustering is the weakest control. These runs are diagnostic only and are not evaluated under the official RWTD proposal-route protocol.}
+    \caption{Archived scale and gating diagnostics from the feature probe. Left: mean ARI by run. Middle: learned all-scale and coarse-plus-mid gate weights still place most mass on the coarsest level. Right: single-scale readouts show that coarse features dominate, while native fine-grid clustering is the weakest control. These runs are read as archived probe evidence rather than as matched benchmark comparisons.}
     \label{fig:feature_scale_diag}
 \end{figure*}
 
-\paragraph{Interpretation.} The appendix diagnostics point in one direction. Coarse frozen features already recover much of the binary partition on the repository-backed probe, learned all-scale fusion still prefers the coarsest level, and the finest native grid is the least reliable setting. That is enough for the paper's narrower use of this route: frozen SAM features can contain texture-aware structure, but the feature probe remains a diagnostic instrument rather than a matched main-paper system.
+\paragraph{Interpretation.} The appendix diagnostics point in one direction. Coarse frozen features already recover much of the binary partition on the repository-backed probe, learned all-scale fusion still prefers the coarsest level, and the finest native grid is the least reliable setting. That is enough for the paper's use of this route: frozen SAM features can contain texture-aware structure, even though the feature probe is not the matched benchmark route used for RWTD and STLD headline comparisons.
 
 \input{tables/feature_parity}
 

@@ -1,6 +1,6 @@
 # Results Package
 
-This directory contains the retained paper-round evidence that survives into the public ArchiTexture release.
+This directory contains the retained paper-round evidence behind the frozen-SAM texture study and its two main evidence routes.
 
 - `RESULTS_MANIFEST.md`: maps figures and tables to source artifacts
 - `EXPERIMENT_LEDGER.md`: exact local commands and retained output paths from the final manuscript round

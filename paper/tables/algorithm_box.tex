@@ -5,7 +5,7 @@
 \renewcommand{\arraystretch}{1.02}
 \begin{tabularx}{\columnwidth}{@{}X@{}}
 \toprule
-\textbf{Algorithm 1: \sys{} proposal-space inference for image $x$} \\
+\textbf{Algorithm 1: proposal-space inference over the frozen mask bank for image $x$} \\
 \midrule
 1. Load the frozen prompt-bank proposals $\mathcal{P}(x)$ and compute proposal descriptors $d_i$ for each $m_i \in \mathcal{P}(x)$. \\
 2. Score adjacent proposal pairs with $s(i,j)$ and threshold the compatibility graph. \\

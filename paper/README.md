@@ -1,6 +1,13 @@
-# Paper Build
+# Paper
 
-The final manuscript source and compiled PDF for the ArchiTexture submission live in this directory.
+This directory contains the manuscript source and compiled PDF for:
+
+**Does Frozen SAM Understand Texture? Evidence from Frozen Features and Proposal Masks**
+
+The paper is organized around two parallel evidence routes:
+
+- **Feature-space exploration** over frozen multiscale features
+- **Proposal-/mask-space exploration** over generated proposal masks
 
 ## Compile
 
@@ -13,8 +20,9 @@ This produces `paper/main.pdf`.
 
 ## Contents
 
-- `main.tex`, `abstract.tex`, `sections/`, `tables/`, `figures/`: paper source
-- `appendix.tex`: appendix included after references in the same PDF
-- `scripts/build_appendix_assets.py`: builder used for the appendix galleries during the final paper round
+- `main.tex`, `abstract.tex`, `sections/`, `tables/`, `figures/`: manuscript source
+- `appendix.tex`: appendix included after the references in the same PDF
+- `main.pdf`: prebuilt compiled manuscript
+- `scripts/build_appendix_assets.py`: appendix-asset builder retained from the paper round
 
-The source is self-contained for the retained manuscript build. The prebuilt `main.pdf` is the same paper package referenced from the repo root.
+The source is self-contained for the retained manuscript build.

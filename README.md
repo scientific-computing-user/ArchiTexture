@@ -1,11 +1,11 @@
 # ArchiTexture
 
 <p align="center">
-  <strong>Recovering Texture Partitions from Frozen SAM via Proposal-Space Commitment</strong>
+  <strong>Does Frozen SAM Understand Texture? Evidence from Frozen Features and Proposal Masks</strong>
 </p>
 
 <p align="center">
-  Paper-first code and artifact release for the ArchiTexture NeurIPS submission.
+  Paper, code, and retained artifacts for a question-led NeurIPS study of texture understanding in frozen SAM-style systems.
 </p>
 
 <p align="center">
@@ -20,73 +20,73 @@
   <a href="results/RESULTS_MANIFEST.md"><strong>Results Manifest</strong></a>
 </p>
 
-<p align="center">
-  <img src="paper/figures/fig_consolidation_logic.png" width="94%" alt="ArchiTexture proposal-space commitment pipeline">
-</p>
+## The Question
 
-ArchiTexture studies texture segmentation in frozen SAM-style systems as a recoverability problem. The paper's core claim is narrower, and more operational, than generic texture adaptation: a large part of the missing performance is not new backbone texture knowledge, but texture partition commitment above a fragmented frozen proposal bank.
+This repository accompanies a narrow scientific question:
 
-This repository is intentionally paper-first. It packages the final manuscript, the core `texturesam_v2` proposal-space implementation, the in-scope experiment scripts, and the retained summary artifacts behind the final tables and appendix diagnostics.
+**Does frozen SAM already contain texture understanding, even though it was built mainly for semantic segmentation?**
 
-## Why This Paper Is Interesting
+The paper answers that question through two complementary routes:
 
-- **Frozen evidence can be strong but unusable.** SAM-style proposal banks often contain the right pieces for texture segmentation, but they do not commit them into coherent texture partitions.
-- **The hard case is not the same on every benchmark.** RWTD behaves like a fragmented-evidence regime, while STLD often behaves like a singleton-selection regime.
-- **The paper separates diagnostic evidence from operational evidence.** Feature-space recovery remains auxiliary. The main contribution is proposal-space commitment above the frozen bank.
-- **The claim is backed by oracle analysis.** On RWTD, the learned system improves substantially over simple top-1 selection, yet the frozen bank still contains additional unrecovered value.
+1. **Feature-space exploration**
+   - What texture structure is already latent in frozen multiscale features?
+2. **Proposal-/mask-space exploration**
+   - What texture structure is already present in the generated mask bank, and how much of it is recoverable without retraining the backbone or proposal generator?
 
-## Main Matched Results
+The repo name remains `ArchiTexture`, but the paper’s identity is the question above rather than an implementation label.
+
+## Two Evidence Routes
+
+| Route | Frozen evidence inspected | What it reveals | What it does not settle alone |
+| --- | --- | --- | --- |
+| **Feature-space exploration** | multiscale SAM `backbone_fpn` features | latent texture-relevant organization in the frozen representation | matched end-task recoverability under the official RWTD / STLD comparison blocks |
+| **Proposal-/mask-space exploration** | generated proposal masks | recoverable texture partitions already externalized into the mask bank | whether the texture signal was already present before proposal generation |
+
+Read together, these routes argue that frozen SAM is not texture-blind: texture-relevant structure is visible both in the representation and in the generated masks.
+
+## Main Matched Findings
 
 Values are reported as `mIoU / ARI`.
 
-| Benchmark | Evaluator / subset | Comparator | ArchiTexture | Reading |
+| Benchmark | Evaluator / subset | Comparator | Proposal route | Reading |
 | --- | --- | --- | --- | --- |
-| RWTD | official invariant, common-253 | TextureSAM rerun `0.4684 / 0.6163` | **`0.4645 / 0.7013`** | Near-matched overlap, much stronger coherence |
-| RWTD | official invariant, full-256 | SAM2.1-small rerun `0.1615 / 0.2183` | **`0.4611 / 0.6966`** | Large gain over the raw frozen baseline |
-| STLD | direct foreground, common-182 | TextureSAM rerun `0.5140 / 0.7526` | **`0.7195 / 0.7791`** | Stronger overlap and modestly better coherence |
-| STLD | direct foreground, all-200 | SAM2.1-small rerun `0.3686 / 0.5269` | **`0.6705 / 0.7249`** | Large gain in both views |
+| RWTD | official invariant, matched shared subset | TextureSAM rerun `0.4684 / 0.6163` | **`0.4645 / 0.7013`** | near-matched overlap, much stronger coherence |
+| RWTD | official invariant, full evaluator | SAM2.1-small rerun `0.1615 / 0.2183` | **`0.4611 / 0.6966`** | large gain over the raw frozen baseline |
+| STLD | direct foreground, matched shared subset | TextureSAM rerun `0.5140 / 0.7526` | **`0.7195 / 0.7791`** | stronger overlap and better coherence |
+| STLD | direct foreground, all images | SAM2.1-small rerun `0.3686 / 0.5269` | **`0.6705 / 0.7249`** | large gain in both views |
 
-The main paper stays disciplined around **RWTD** and **STLD**. Feature-space recovery is diagnostic-only, and the ControlNet bridge and CAID remain appendix-only supporting routes.
+The feature-space route is reported separately under its archived probe protocol and is used to show that coarse frozen features already organize nontrivial texture structure.
 
-## The Recoverability Story
+## Why The Paper Is Interesting
 
-<p align="center">
-  <img src="paper/figures/fig_rwtd_oracle_decomposition.png" width="82%" alt="RWTD oracle decomposition">
-</p>
+- **It separates latent evidence from recoverable evidence.** Frozen features and generated masks answer different parts of the same scientific question.
+- **It explains why benchmarks differ.** RWTD behaves like a fragmented-evidence regime, while STLD often behaves like a singleton-selection regime.
+- **It shows that ambiguity, not total signal absence, is the remaining bottleneck.** RWTD oracle analysis reveals substantial unrecovered headroom in the frozen mask bank.
+- **It stays narrow and disciplined.** The central main-body benchmarks are RWTD and STLD; bridge and CAID routes remain supporting appendix material.
 
-The RWTD oracle decomposition is the paper's key sanity check. It shows that the gain is not explained by lucky top-1 selection alone:
+## What Stays Frozen
 
-| RWTD common-253 method | mIoU | ARI |
-| --- | ---: | ---: |
-| Learned single selector | 0.4512 | 0.5601 |
-| Core-only commitment | 0.4558 | 0.6812 |
-| **ArchiTexture final** | **0.4645** | **0.7013** |
-| Single frozen-proposal oracle | 0.5142 | 0.8146 |
-| Bank upper bound | 0.5183 | 0.8580 |
-
-That gap is the paper in one table: a frozen bank can already contain useful texture evidence, but extracting it requires more than selecting one attractive proposal.
-
-## What Is Frozen, And What Is Learned
-
-| Frozen | Learned |
+| Frozen | Learned above it |
 | --- | --- |
-| SAM-style proposal generator | proposal compatibility scoring |
-| proposal bank itself | conservative component scoring and selection |
-| feature probe backbone used in the auxiliary appendix | RWTD dense rescue layer |
+| SAM-style backbone and proposal generator | feature probe clustering controls |
+| generated proposal mask bank | proposal compatibility scoring |
+| prompt source / proposal generation process | conservative component scoring and selection |
+| backbone weights | RWTD-only rescue readout |
 
-The method therefore isolates decision-layer recoverability instead of burying the result inside a new end-to-end segmentation network.
+The result is a clean recoverability study rather than a new end-to-end adaptation stack.
 
 ## Repository Tour
 
 | Path | Purpose |
 | --- | --- |
 | `paper/` | final manuscript source and compiled PDF |
-| `texturesam_v2/` | core proposal-space package |
-| `scripts/` | curated in-scope experiment, evaluation, and analysis scripts |
+| `texturesam_v2/` | core proposal-/mask-space package |
+| `scripts/` | in-scope experiment, evaluation, and analysis scripts |
 | `tests/` | lightweight package tests |
-| `results/` | retained JSON/CSV summaries, manifest, and experiment ledger |
+| `results/` | retained summaries, manifests, and experiment ledger |
 | `appendix_assets/` | standalone appendix figures and galleries |
 | `reproducibility/` | shortest-path notes for rebuilding main and appendix artifacts |
+| `docs/` | release-scope and support notes |
 | `data_docs/` | benchmark-role notes |
 | `checkpoints_manifest/` | expectations for external checkpoints needed for full reruns |
 
@@ -107,22 +107,22 @@ cd paper
 tectonic main.tex
 ```
 
-## Fastest Audit Path
+## Reproducibility Path
 
 1. Read the paper: [paper/main.pdf](paper/main.pdf)
-2. Verify where each figure and table comes from: [results/RESULTS_MANIFEST.md](results/RESULTS_MANIFEST.md)
-3. Inspect the exact retained commands and output roots: [results/EXPERIMENT_LEDGER.md](results/EXPERIMENT_LEDGER.md)
-4. Check the committed summary artifacts under `results/artifacts/`
-5. Use [reproducibility/REPRODUCE_MAIN_RESULTS.md](reproducibility/REPRODUCE_MAIN_RESULTS.md) for the shortest path back to the main tables
+2. Map every figure and table to its artifact source: [results/RESULTS_MANIFEST.md](results/RESULTS_MANIFEST.md)
+3. Inspect retained command provenance: [results/EXPERIMENT_LEDGER.md](results/EXPERIMENT_LEDGER.md)
+4. Use [reproducibility/REPRODUCE_MAIN_RESULTS.md](reproducibility/REPRODUCE_MAIN_RESULTS.md) for the shortest path back to the matched tables
+5. Use [reproducibility/REPRODUCE_APPENDIX.md](reproducibility/REPRODUCE_APPENDIX.md) for the appendix galleries and supporting figures
 
 ## Scope Discipline
 
-This public release follows the final paper scope exactly:
+This public package follows the final paper scope:
 
-- **Main body:** RWTD and STLD
-- **Auxiliary diagnostic evidence:** feature-space recovery from coarse frozen features
-- **Appendix-only supporting routes:** ControlNet bridge and CAID
-- **Not part of the main paper story:** DeTexture / Detector / ADE20K and AdaSam-style adaptor experiments
+- **Main paper:** RWTD and STLD
+- **Parallel scientific routes:** feature-space exploration and proposal-/mask-space exploration
+- **Supporting appendix routes:** ControlNet bridge and CAID
+- **Out of scope for the main story:** DeTexture / Detector / ADE20K and AdaSam-style adaptor branches
 
 ## Citation
 

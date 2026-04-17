@@ -1,6 +1,6 @@
 # Updated Sources Used
 
-This file is the final evidence map for the revised NeurIPS manuscript in `paper_neurips_unified`. It supersedes the earlier inventory note and reflects the narrowed scope of the rewritten paper: proposal-space recoverability is the main claim; feature-space evidence is diagnostic only; ControlNet bridge and CAID are appendix-only supporting routes; DeTexture / Detector / ADE20K are excluded.
+This file is the final evidence map for the revised NeurIPS manuscript in `paper/`. It supersedes the earlier inventory note and reflects the final question-led framing of the paper: frozen SAM is studied through two complementary evidence routes, one over frozen features and one over generated proposal masks, with ControlNet bridge and CAID retained as appendix-side supporting routes.
 
 ## Scope lock
 
@@ -8,8 +8,8 @@ Main-paper routes:
 
 - RWTD
 - STLD
-- proposal-space recoverability via `ArchiTexture`
-- feature-space diagnostic note only
+- feature-space exploration
+- proposal-/mask-space exploration via a lightweight learned readout above the frozen mask bank
 
 Appendix-only supporting routes:
 
@@ -48,9 +48,9 @@ Explicitly excluded:
 ## Main matched comparison sources
 
 - `rwtd_miner_github_repo/paper_repro/source_data/main_results/rwtd_architexture_full256_official.json`
-  - RWTD full-256 `ArchiTexture` headline row: `0.4611 / 0.6966`.
+  - RWTD full-256 proposal-route headline row: `0.4611 / 0.6966`.
 - `rwtd_miner_github_repo/paper_repro/source_data/main_results/rwtd_architexture_common253_official.json`
-  - RWTD common-253 `ArchiTexture` headline row: `0.4645 / 0.7013`.
+  - RWTD common-253 proposal-route headline row: `0.4645 / 0.7013`.
 - `rwtd_miner_github_repo/paper_repro/source_data/main_results/rwtd_texturesam_common253_official.json`
   - RWTD common-253 TextureSAM rerun row: `0.4684 / 0.6163`.
 - `rwtd_miner_github_repo/paper_repro/source_data/main_results/rwtd_sam2_original_official.json`

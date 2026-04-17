@@ -11,4 +11,8 @@ Standalone appendix figures are also copied into [appendix_assets](../appendix_a
 - ControlNet bridge supporting figure
 - CAID breadth-check figure
 
-The current submission scope keeps feature-space evidence diagnostic-only and keeps the ControlNet bridge and CAID as appendix-only supporting routes.
+The supplementary package follows the paper's two-route structure:
+
+- feature-space materials expand what the frozen representation reveals
+- proposal-/mask-space materials expand what the generated mask bank reveals
+- ControlNet bridge and CAID remain scope-limited supporting routes
