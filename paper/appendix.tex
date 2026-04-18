@@ -82,17 +82,17 @@ STLD plays a different supporting role. The oracle analysis still shows extra he
 \section{Complementary Benchmark Details}
 \label{app:benchmark_complements}
 
-The main text keeps four central benchmark routes: two historical anchors and two broader complements. This appendix records the secondary metric views and qualitative cases for the two complements, then keeps CAID as an additional real-world shoreline contrast. The ADE20K-selected route broadens the natural side with visually curated public crops. The ControlNet route broadens the synthetic side with exact stitched transitions that are more naturalistic than classical mosaics. CAID remains appendix-only because its shoreline structure is useful but distinctly domain-specific.
+The main text keeps four central benchmark routes: two historical anchors and two broader complements. This appendix records the secondary metric views and qualitative cases for the two complements, then keeps CAID as an additional real-world shoreline contrast. The ADE20K-selected route broadens the natural side with our separately released visually curated crops. The ControlNet route broadens the synthetic side with exact stitched transitions that are more naturalistic than classical mosaics. CAID remains appendix-only because its shoreline structure is useful but distinctly domain-specific.
 
 \subsection{ADE20K-Selected Natural Complement}
 \label{app:detexture_secondary}
 
-This complement starts from the public ADE20K refined-crop release. We keep the refined paired crops as published, treat each crop as a binary texture-partition test with its two refined masks as the two regions, and aggregate 753 paired crop tests, corresponding to about 1.5K labeled texture regions across the two sides. The subset definition is inherited from the public gallery manifest of refined crops rather than from a new annotation pass in this paper, so the curation step here is the selection and evaluation of those visually isolated texture transitions as binary partition tests. Because the released TextureSAM checkpoint was trained on ADE20K, the strict public comparison in the paper is restricted to the validation slice and its matched checkpoint subset.
+This complement uses our separately released ADE20K refined-crop subset~\cite{detextureade20k2026}. We keep the refined paired crops as released, treat each crop as a binary texture-partition test with its two refined masks as the two regions, and aggregate 753 paired crop tests, corresponding to about 1.5K labeled texture regions across the two sides. The subset definition follows the released gallery manifest rather than a new annotation pass inside this paper, which is why the route is used here as a compact natural-image complement rather than as a separate dataset contribution. Because the released TextureSAM checkpoint was trained on ADE20K, the strict public comparison in the paper is restricted to the validation slice and its matched checkpoint subset.
 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.98\textwidth]{figures/fig_detexture_audit.png}
-    \caption{Proposal-/mask-space example on the ADE20K-selected natural complement. The public refined crop already isolates a visually selected texture transition, and the frozen proposal bank spans both the dominant surface and its boundary structure. The learned readout turns those fragments into a coherent two-region partition without retraining the proposal generator.}
+    \caption{Proposal-/mask-space example on the ADE20K-selected natural complement. The released refined crop already isolates a visually selected texture transition, and the frozen proposal bank spans both the dominant surface and its boundary structure. The learned readout turns those fragments into a coherent two-region partition without retraining the proposal generator.}
     \label{fig:detexture_app}
 \end{figure*}
 
