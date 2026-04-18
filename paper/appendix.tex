@@ -87,6 +87,8 @@ The main text keeps four central benchmark routes: two historical anchors and tw
 \subsection{ADE20K-Selected Natural Complement}
 \label{app:detexture_secondary}
 
+This complement starts from the public ADE20K refined-crop release. We keep the refined paired crops as published, treat each crop as a binary texture-partition test with its two refined masks as the two regions, and aggregate 753 paired crop tests, corresponding to about 1.5K labeled texture regions across the two sides. The subset definition is inherited from the public gallery manifest of refined crops rather than from a new annotation pass in this paper, so the curation step here is the selection and evaluation of those visually isolated texture transitions as binary partition tests. Because the released TextureSAM checkpoint was trained on ADE20K, the strict public comparison in the paper is restricted to the validation slice and its matched checkpoint subset.
+
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.98\textwidth]{figures/fig_detexture_audit.png}
@@ -98,6 +100,8 @@ The main text keeps four central benchmark routes: two historical anchors and tw
 
 \subsection{ControlNet Bridge Synthetic Complement}
 \label{app:bridge_secondary}
+
+This complement starts from exact two-region synthetic partitions and re-renders them with ControlNet-based stitched regeneration rather than leaving them as hard mosaics. The released generator conditions Stable Diffusion v1.5 on the stitched scaffold with a fixed ``one transition between two raw texture samples'' prompt, so the binary labels are inherited exactly from the pre-generation scaffold while the final images contain more naturalistic transitions than the classical synthetic benchmark. The released archive contains 1,742 generated bridge images, and the paper reports partition-invariant metrics because the two sides are label-symmetric.
 
 \begin{figure*}[t]
     \centering
