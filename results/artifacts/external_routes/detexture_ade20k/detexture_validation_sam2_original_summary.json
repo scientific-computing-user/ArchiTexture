@@ -1,0 +1,35 @@
+{
+  "benchmark_root": "/home/galoren/TextureSAM-v2/experiments/detexture_ade20k_eval_20260317/benchmarks/detexture_validation_refined",
+  "gt_mode": "two_mask_exclusive_valid_pixels",
+  "methods": {
+    "SAM2_original": {
+      "coverage": 56,
+      "direct": {
+        "all": {
+          "ari": 0.13790112066907662,
+          "miou": 0.12633116447971368
+        },
+        "covered": {
+          "ari": 0.13790112066907662,
+          "miou": 0.12633116447971368
+        }
+      },
+      "invariant": {
+        "all": {
+          "ari": 0.10153823787436712,
+          "miou": 0.16647945483980037
+        },
+        "covered": {
+          "ari": 0.10153823787436712,
+          "miou": 0.16647945483980037
+        }
+      },
+      "mean_mask_count_on_present": 13.142857142857142,
+      "mode": "mask_bank"
+    }
+  },
+  "num_images": 56,
+  "overlap_fraction_mean": 3.7529243050551466e-05,
+  "valid_fraction_mean": 0.9967425737837894,
+  "void_fraction_mean": 0.0032198969731601903
+}

@@ -5,7 +5,7 @@
 \input{tables/descriptor_ablation}
 \input{tables/practicality}
 
-\paragraph{Why include this appendix section?} The paper's main claim is scientific rather than systems-oriented, but two reviewer questions still matter: whether the gain depends mainly on a particular descriptor stack, and whether the decision layer is practical enough to deploy above a frozen bank. The tables in this section answer those questions directly. The descriptor ablation keeps the decision stack fixed while varying only the proposal descriptor in the descriptor-sensitive Stage-A layer; on RWTD, hybrid descriptors help clearly more than either single family, while STLD is noticeably less sensitive and sometimes slightly favors handcrafted cues on ARI. The practicality table then summarizes the actual bank sizes, rescue scale, and measured runtime profile of the deployed RWTD and STLD routes.
+\paragraph{Why include this appendix section?} The paper's main claim is scientific rather than engineering-oriented, but two reviewer questions still matter: whether the gain depends mainly on a particular descriptor stack, and whether the decision layer is practical enough to deploy above a frozen bank. The tables in this section answer those questions directly. The descriptor ablation keeps the decision stack fixed while varying only the proposal descriptor in the descriptor-sensitive Stage-A layer; on RWTD, hybrid descriptors help clearly more than either single family, while STLD is noticeably less sensitive and sometimes slightly favors handcrafted cues on ARI. The practicality table then summarizes the actual bank sizes, rescue scale, and measured runtime profile of the deployed RWTD and STLD routes.
 
 \section{Feature-Space Evidence}
 \label{app:feature_provenance}
@@ -79,30 +79,44 @@ STLD plays a different supporting role. The oracle analysis still shows extra he
 
 \input{tables/stld_oracles}
 
-\section{Supporting Routes}
-\label{app:route_secondary}
+\section{Complementary Benchmark Details}
+\label{app:benchmark_complements}
 
-The remaining routes stay secondary by design. The ControlNet-stitched bridge benchmark preserves exact supervision while introducing more naturalistic transitions than hard mosaics, but this paper does not claim a causal bridge-training benefit. CAID is kept only as a breadth check under domain shift.
+The main text keeps four central benchmark routes: two historical anchors and two broader complements. This appendix records the secondary metric views and qualitative cases for the two complements, then keeps CAID as an additional real-world shoreline contrast. The ADE20K-selected route broadens the natural side with visually curated public crops. The ControlNet route broadens the synthetic side with exact stitched transitions that are more naturalistic than classical mosaics. CAID remains appendix-only because its shoreline structure is useful but distinctly domain-specific.
 
-\subsection{ControlNet Bridge Examples}
+\subsection{ADE20K-Selected Natural Complement}
+\label{app:detexture_secondary}
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.98\textwidth]{figures/fig_detexture_audit.png}
+    \caption{Proposal-/mask-space example on the ADE20K-selected natural complement. The public refined crop already isolates a visually selected texture transition, and the frozen proposal bank spans both the dominant surface and its boundary structure. The learned readout turns those fragments into a coherent two-region partition without retraining the proposal generator.}
+    \label{fig:detexture_app}
+\end{figure*}
+
+\input{tables/detexture_secondary}
+
+\subsection{ControlNet Bridge Synthetic Complement}
 \label{app:bridge_secondary}
 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.92\textwidth]{figures/fig_controlnet_bridge_examples.png}
-    \caption{Supporting proposal-/mask-space examples on the ControlNet bridge route. The proposal-union view often leaks across the stitched transition or over-broadens the generator boundary, which explains why overlap can look reasonable while ARI remains fragile. The learned readout is more conservative, but this route remains appendix-only because the paper does not establish a causal bridge-training advantage.}
+    \caption{Proposal-/mask-space examples on the ControlNet bridge complement. The proposal-union view often leaks across the stitched transition or over-broadens the generator boundary, which explains why overlap can look reasonable while ARI remains fragile. The learned readout is more conservative, which is exactly why this route is a useful complement to the cleaner classical synthetic benchmark.}
     \label{fig:controlnet_bridge_app}
 \end{figure*}
 
 \input{tables/controlnet_secondary}
 
-\subsection{CAID Breadth Check}
+\subsection{CAID Real-World Complement}
 \label{app:caid_secondary}
+
+CAID remains appendix-only because it is a narrower real-world shoreline benchmark rather than a central natural-texture benchmark. It is still worth keeping because it contributes a distinct structural stress test: exact binary masks, large contiguous land/water partitions, and remote-sensing / overhead imagery in which texture-like cues operate at a much larger spatial scale than in the main natural benchmarks.
 
 \begin{figure*}[t]
     \centering
     \includegraphics[width=0.98\textwidth]{figures/fig_caid_audit.png}
-    \caption{Supporting proposal-/mask-space breadth check on CAID. The same frozen-bank consolidation logic remains useful under shoreline structure, but this route is not central to the paper's texture claim and is reported only as an appendix-side generalization check.}
+    \caption{CAID appendix real-world complement. The same frozen-bank consolidation logic remains useful under shoreline structure, but this route is reported separately because it emphasizes large contiguous coastal partitions rather than the broader natural/synthetic texture settings that define the paper's main center.}
     \label{fig:caid_app}
 \end{figure*}
 

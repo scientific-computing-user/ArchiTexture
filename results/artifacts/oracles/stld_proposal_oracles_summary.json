@@ -1,0 +1,46 @@
+{
+  "num_images": 200,
+  "common182_count": 182,
+  "benchmark_root": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/benchmark",
+  "prompt_masks_root": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/promptstyle",
+  "final_masks_root": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/eval/strict_ptd_learned/masks",
+  "texturesam_maskbank_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/stld_texturesam0p3_maskbank_per_image.csv",
+  "methods": [
+    {
+      "method": "final_release",
+      "all200_miou": 0.6705275124719756,
+      "all200_ari": 0.7249480145082576,
+      "common182_miou": 0.7194616806936366,
+      "common182_ari": 0.7791096027513711
+    },
+    {
+      "method": "single_proposal_oracle",
+      "all200_miou": 0.7375322476999994,
+      "all200_ari": 0.7684362427056114,
+      "common182_miou": 0.8104749974725268,
+      "common182_ari": 0.8444354315446279
+    },
+    {
+      "method": "compatible_component_oracle",
+      "all200_miou": 0.3950368420519144,
+      "all200_ari": 0.35976622112987977,
+      "common182_miou": 0.43410641983726855,
+      "common182_ari": 0.3953474957471206
+    },
+    {
+      "method": "topk_union_oracle",
+      "all200_miou": 0.12570182685919953,
+      "all200_ari": 0.02886337478063793,
+      "common182_miou": 0.13813387566945004,
+      "common182_ari": 0.031717994264437284
+    },
+    {
+      "method": "bank_upper_bound_oracle",
+      "all200_miou": 0.757357985338002,
+      "all200_ari": 0.7961884996572877,
+      "common182_miou": 0.814879782744215,
+      "common182_ari": 0.8573958501678879
+    }
+  ],
+  "per_image_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/reviewer_oracles_stld/stld_proposal_oracles_per_image.csv"
+}

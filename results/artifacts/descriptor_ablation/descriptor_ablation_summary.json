@@ -1,0 +1,145 @@
+{
+  "descriptor_modes": [
+    "handcrafted",
+    "ptd_convnext",
+    "hybrid_ptd"
+  ],
+  "route": "stageA",
+  "runs": {
+    "rwtd::handcrafted": {
+      "artifacts": {
+        "stageA_masks_dir": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/handcrafted/rwtd/stageA/masks",
+        "stageA_official_common_json": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/handcrafted/rwtd/stageA/official_eval_common253.json",
+        "stageA_official_full_json": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/handcrafted/rwtd/stageA/official_eval_full256.json",
+        "stageA_per_image_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/handcrafted/rwtd/stageA/stageA_per_image.csv"
+      },
+      "bundle_path": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/handcrafted/rwtd/models/handcrafted.pkl",
+      "bundle_status": "cached",
+      "common253_count": 253,
+      "dataset": "rwtd",
+      "descriptor_mode": "handcrafted",
+      "num_images": 256,
+      "stageA": {
+        "internal_common253_ari": 0.6240505489119278,
+        "internal_common253_miou": 0.7145494016809182,
+        "internal_full256_ari": 0.6225768130224618,
+        "internal_full256_miou": 0.7137843832250299,
+        "mean_merged_components": 2.65625,
+        "mean_proposal_count": 3.84375,
+        "official_common253_ari": 0.655577135556413,
+        "official_common253_miou": 0.4468929572150741,
+        "official_full256_ari": 0.6533140365269803,
+        "official_full256_miou": 0.44544875652648824
+      }
+    },
+    "rwtd::hybrid_ptd": {
+      "artifacts": {
+        "stageA_masks_dir": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/margin_guard_sweep_swin256/margin_0p0/masks",
+        "stageA_official_common_json": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/hybrid_stagea_eval/official_common253.json",
+        "stageA_official_full_json": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/hybrid_stagea_eval/official_full256.json"
+      },
+      "bundle_metrics_path": "/home/galoren/ArchiTexture/TextureSAM-v2/artifacts/ptd_learned_swinb_pre_ring_metrics.json",
+      "bundle_path": "/home/galoren/ArchiTexture/TextureSAM-v2/artifacts/ptd_learned_swinb_pre_ring.pkl",
+      "bundle_status": "reused",
+      "common253_count": 253,
+      "dataset": "rwtd",
+      "descriptor_mode": "hybrid_ptd",
+      "num_images": 256,
+      "stageA": {
+        "mean_merged_components": 2.640625,
+        "mean_proposal_count": 3.84375,
+        "official_common253_ari": 0.6812081078590664,
+        "official_common253_miou": 0.4557919994314633,
+        "official_full256_ari": 0.6786438598939043,
+        "official_full256_miou": 0.45426016312202716
+      }
+    },
+    "rwtd::ptd_convnext": {
+      "artifacts": {
+        "stageA_masks_dir": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/ptd_convnext/rwtd/stageA/masks",
+        "stageA_official_common_json": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/ptd_convnext/rwtd/stageA/official_eval_common253.json",
+        "stageA_official_full_json": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/ptd_convnext/rwtd/stageA/official_eval_full256.json",
+        "stageA_per_image_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/ptd_convnext/rwtd/stageA/stageA_per_image.csv"
+      },
+      "bundle_path": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/ptd_convnext/rwtd/models/ptd_convnext.pkl",
+      "bundle_status": "trained",
+      "common253_count": 253,
+      "dataset": "rwtd",
+      "descriptor_mode": "ptd_convnext",
+      "num_images": 256,
+      "stageA": {
+        "internal_common253_ari": 0.6266724279031404,
+        "internal_common253_miou": 0.7244476941974812,
+        "internal_full256_ari": 0.625167966869246,
+        "internal_full256_miou": 0.7235666801261645,
+        "mean_merged_components": 2.5703125,
+        "mean_proposal_count": 3.84375,
+        "official_common253_ari": 0.6505462961874879,
+        "official_common253_miou": 0.44862863942179493,
+        "official_full256_ari": 0.648376397709911,
+        "official_full256_miou": 0.44717342379143704
+      }
+    },
+    "stld::handcrafted": {
+      "artifacts": {
+        "masks_dir": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/handcrafted/stld/masks",
+        "per_image_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/handcrafted/stld/stld_stageA_per_image.csv"
+      },
+      "bundle_path": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/handcrafted/stld/models/handcrafted.pkl",
+      "bundle_status": "cached",
+      "common182_count": 182,
+      "dataset": "stld",
+      "descriptor_mode": "handcrafted",
+      "mean_merged_components": 2.3,
+      "mean_proposal_count": 1.775,
+      "num_images": 200,
+      "stageA": {
+        "all200_ari": 0.7265315319118867,
+        "all200_miou": 0.6569570322847786,
+        "common182_ari": 0.7808497317663482,
+        "common182_miou": 0.7045490651033104
+      }
+    },
+    "stld::hybrid_ptd": {
+      "artifacts": {
+        "per_image_source": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/direct_eval/direct_foreground_summary.json"
+      },
+      "bundle_metrics_path": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/models/ptd_learned_split_metrics.json",
+      "bundle_path": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/models/ptd_learned_split.pkl",
+      "bundle_status": "reused",
+      "common182_count": 182,
+      "dataset": "stld",
+      "descriptor_mode": "hybrid_ptd",
+      "mean_merged_components": 2.32,
+      "mean_proposal_count": 1.775,
+      "num_images": 200,
+      "stageA": {
+        "all200_ari": 0.7249480145082576,
+        "all200_miou": 0.6705275124719756,
+        "common182_ari": 0.7791096027513711,
+        "common182_miou": 0.7194616806936366
+      }
+    },
+    "stld::ptd_convnext": {
+      "artifacts": {
+        "masks_dir": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/ptd_convnext/stld/masks",
+        "per_image_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/ptd_convnext/stld/stld_stageA_per_image.csv"
+      },
+      "bundle_path": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/ptd_convnext/stld/models/ptd_convnext.pkl",
+      "bundle_status": "trained",
+      "common182_count": 182,
+      "dataset": "stld",
+      "descriptor_mode": "ptd_convnext",
+      "mean_merged_components": 2.325,
+      "mean_proposal_count": 1.775,
+      "num_images": 200,
+      "stageA": {
+        "all200_ari": 0.7203096244124274,
+        "all200_miou": 0.625310615945197,
+        "common182_ari": 0.7740124707779314,
+        "common182_miou": 0.6697727834114622
+      }
+    }
+  },
+  "summary_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_submission_descriptor_ablation/descriptor_ablation_summary.csv"
+}

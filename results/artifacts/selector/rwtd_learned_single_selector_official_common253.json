@@ -1,0 +1,18 @@
+{
+  "pred_folder": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_round_learned_single_selector_rwtd/official_export_common253",
+  "gt_folder": "/home/galoren/ArchiTexture/TextureSAM_upstream_20260303/Kaust256/labeles",
+  "noagg_official": {
+    "script": "eval_no_agg_masks.py (official import)",
+    "num_gt_images": 256,
+    "num_pred_image_ids": 253,
+    "num_gt_instances_evaluated": 506,
+    "overall_average_iou": 0.4511737725776349,
+    "overall_average_rand_index": 0.5600874958537893
+  },
+  "agg_like_custom": {
+    "num_images": 253,
+    "mean_iou": 0.4715394200743749,
+    "mean_iou_inverse": 0.5091604014725037,
+    "mean_iou_rwtd_average": 0.4903499107734393
+  }
+}

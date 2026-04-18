@@ -5,12 +5,12 @@
 \toprule
 Item & Value \\
 \midrule
-External training data & PTD only for the RWTD route; Brodatz-native synthetic supervision for STLD \\
+External training data & PTD only for RWTD, the ADE20K-selected complement, the ControlNet bridge complement, and the appendix CAID route; Brodatz-native synthetic supervision for STLD \\
 Encoder training data & 80{,}000 train / 20{,}000 val images per synthetic source \\
 RWTD benchmark usage & Evaluation only; no RWTD-label training or hyperparameter search \\
 Proposal source & Frozen SAM-style automatic masks \\
-RWTD/STLD deployed model & Swin-Base masked-region encoder with learned merge/core/repair modules \\
-ControlNet / CAID deployed model & PTD-trained \texttt{small\_pre\_ring\_hi} Stage-A bundle \\
+RWTD / STLD deployed model & Swin-Base masked-region encoder with learned merge/core/repair modules \\
+ADE20K / ControlNet / CAID appendix deployed model & PTD-trained \texttt{small\_pre\_ring\_hi} Stage-A bundle \\
 Primary evaluator & Official upstream no-aggregation evaluator on RWTD; route-matched evaluators elsewhere \\
 Comparator family & Raw SAM2.1-small plus reproduced/public TextureSAM checkpoints \\
 \bottomrule

@@ -1,0 +1,12 @@
+{
+  "dataset_root": "/home/galoren/detexture_ADE20K",
+  "gallery_path": "/home/galoren/detexture_ADE20K/gallery.json",
+  "variant": "refined",
+  "split": "validation",
+  "num_images": 56,
+  "out_root": "/home/galoren/TextureSAM-v2/experiments/detexture_ade20k_eval_20260317/benchmarks/detexture_validation_refined",
+  "gt_layout": "two_mask_pair_with_label_a_compat",
+  "valid_fraction_mean": 0.9967425737837894,
+  "overlap_fraction_mean": 3.7529243050551466e-05,
+  "void_fraction_mean": 0.0032198969731601903
+}

@@ -1,0 +1,120 @@
+{
+  "config": {
+    "num_bootstrap": 5000,
+    "seed": 0,
+    "gt_root": "/home/galoren/ArchiTexture/TextureSAM_upstream_20260303/Kaust256/labeles",
+    "upstream_root": "/home/galoren/ArchiTexture/TextureSAM_upstream_20260303"
+  },
+  "rwtd_common253_overlap_instances": {
+    "count": 426,
+    "a_name": "ArchiTexture",
+    "b_name": "TextureSAM-0.3",
+    "a_root": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/release_swinb_full256_audit/official_export_common253",
+    "b_root": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/repro_upstream_eval/official_0p3_masks",
+    "note": "Paired bootstrap over GT instances overlapped by both methods. This matches the official overlap-significance view used to support the common-253 comparison, rather than a per-image mean that changes the denominator.",
+    "delta_a_minus_b": {
+      "miou": {
+        "mean_delta": 0.0404896868367046,
+        "ci95_low": 0.0030788973566772543,
+        "ci95_high": 0.07640938716954988,
+        "prob_delta_gt_zero": 0.9824
+      },
+      "ari": {
+        "mean_delta": 0.09952967488884674,
+        "ci95_low": 0.0720711125789893,
+        "ci95_high": 0.1270419963164544,
+        "prob_delta_gt_zero": 1.0
+      }
+    }
+  },
+  "rwtd_common253_per_image_aux": {
+    "count": 253,
+    "a_name": "ArchiTexture",
+    "b_name": "TextureSAM-0.3",
+    "a_root": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/release_swinb_full256_audit/official_export_common253",
+    "b_root": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/repro_upstream_eval/official_0p3_masks",
+    "a": {
+      "miou": {
+        "mean": 0.39103510684005627,
+        "ci95_low": 0.37229822677024943,
+        "ci95_high": 0.40905558521519697
+      },
+      "ari": {
+        "mean": 0.5904273302746764,
+        "ci95_low": 0.5453325146672923,
+        "ci95_high": 0.6352761389027058
+      }
+    },
+    "b": {
+      "miou": {
+        "mean": 0.4563827197554645,
+        "ci95_low": 0.43445004886397603,
+        "ci95_high": 0.47900009718646025
+      },
+      "ari": {
+        "mean": 0.6004584873164492,
+        "ci95_low": 0.5668902089157792,
+        "ci95_high": 0.6341229564624624
+      }
+    },
+    "delta_a_minus_b": {
+      "miou": {
+        "mean_delta": -0.06534761291540822,
+        "ci95_low": -0.0877799829772077,
+        "ci95_high": -0.04271458868336492,
+        "prob_delta_gt_zero": 0.0
+      },
+      "ari": {
+        "mean_delta": -0.010031157041772872,
+        "ci95_low": -0.04878006339368952,
+        "ci95_high": 0.02892688586948861,
+        "prob_delta_gt_zero": 0.2934
+      }
+    }
+  },
+  "rwtd_full256_per_image_aux": {
+    "count": 256,
+    "a_name": "ArchiTexture",
+    "b_name": "SAM2.1-small",
+    "a_root": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/release_swinb_full256_audit/official_export",
+    "b_root": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/sam2_original_baselines_20260313/rwtd/masks",
+    "a": {
+      "miou": {
+        "mean": 0.38905662178640976,
+        "ci95_low": 0.3704102500282039,
+        "ci95_high": 0.4066423762717119
+      },
+      "ari": {
+        "mean": 0.5877353774304546,
+        "ci95_low": 0.5422874409016571,
+        "ci95_high": 0.6316267278563075
+      }
+    },
+    "b": {
+      "miou": {
+        "mean": 0.16145866726502753,
+        "ci95_low": 0.14496427998731198,
+        "ci95_high": 0.1793872081918387
+      },
+      "ari": {
+        "mean": 0.21831960989768529,
+        "ci95_low": 0.19321434224180162,
+        "ci95_high": 0.2447099086616466
+      }
+    },
+    "delta_a_minus_b": {
+      "miou": {
+        "mean_delta": 0.22759795452138218,
+        "ci95_low": 0.20420031771911268,
+        "ci95_high": 0.24947693330883586,
+        "prob_delta_gt_zero": 1.0
+      },
+      "ari": {
+        "mean_delta": 0.3694157675327693,
+        "ci95_low": 0.3210389238177709,
+        "ci95_high": 0.4168663834551266,
+        "prob_delta_gt_zero": 1.0
+      }
+    }
+  }
+}

@@ -7,17 +7,23 @@
 \toprule
 Benchmark & Evaluator / subset & Method & mIoU & ARI \\
 \midrule
-RWTD & official invariant, full-256 & SAM2.1-small original rerun~\cite{ravi2024sam2} & 0.1615 & 0.2183 \\
-RWTD & official invariant, full-256 & Proposal route & 0.4611 & 0.6966 \\
-RWTD & official invariant, common-253 & TextureSAM public checkpoint rerun~\cite{texturesamrepo2026} & 0.4684 & 0.6163 \\
-RWTD & official invariant, common-253 & Proposal route & 0.4645 & 0.7013 \\
+RWTD & official invariant, full benchmark & SAM2.1-small original rerun~\cite{ravi2024sam2} & 0.1615 & 0.2183 \\
+RWTD & official invariant, matched checkpoint subset & TextureSAM public checkpoint rerun~\cite{texturesamrepo2026} & 0.4684 & 0.6163 \\
+RWTD & official invariant, matched checkpoint subset & Proposal route & 0.4645 & 0.7013 \\
 \midrule
-STLD & direct foreground, all-200 & SAM2.1-small original rerun~\cite{ravi2024sam2} & 0.3686 & 0.5269 \\
-STLD & direct foreground, all-200 & Proposal route & 0.6705 & 0.7249 \\
-STLD & direct foreground, common-182 & TextureSAM public checkpoint rerun~\cite{texturesamrepo2026} & 0.5140 & 0.7526 \\
-STLD & direct foreground, common-182 & Proposal route & 0.7195 & 0.7791 \\
+ADE20K-selected crops & invariant, validation slice & SAM2.1-small original rerun~\cite{ravi2024sam2} & 0.1665 & 0.1015 \\
+ADE20K-selected crops & invariant, matched checkpoint subset & TextureSAM public checkpoint rerun~\cite{texturesamrepo2026} & 0.4715 & 0.3306 \\
+ADE20K-selected crops & invariant, matched checkpoint subset & Proposal route Stage-A & 0.5043 & 0.3762 \\
+\midrule
+STLD & direct foreground, full benchmark & SAM2.1-small original rerun~\cite{ravi2024sam2} & 0.3686 & 0.5269 \\
+STLD & direct foreground, matched checkpoint subset & TextureSAM public checkpoint rerun~\cite{texturesamrepo2026} & 0.5140 & 0.7526 \\
+STLD & direct foreground, matched checkpoint subset & Proposal route & 0.7195 & 0.7791 \\
+\midrule
+ControlNet bridge & invariant, full benchmark & SAM2.1-small original rerun~\cite{ravi2024sam2} & 0.2770 & 0.2213 \\
+ControlNet bridge & invariant, matched checkpoint subset & TextureSAM public checkpoint rerun~\cite{texturesamrepo2026} & 0.6436 & 0.5519 \\
+ControlNet bridge & invariant, matched checkpoint subset & Proposal route Stage-A & 0.6803 & 0.6039 \\
 \bottomrule
 \end{tabularx}
-\caption{Matched quantitative results from the proposal-/mask-space route. Each block fixes the evaluator and subset convention before comparing methods. The feature route answers a different question under its own archived probe protocol and is summarized separately rather than folded into this matched benchmark table.}
+\caption{Proposal-/mask-space results across the historical natural/synthetic anchors and their broader complements. RWTD and STLD remain the canonical comparison pair. The ADE20K-selected crop route broadens the natural side, and the ControlNet bridge route broadens the synthetic side. Within each block, the comparison rows use a fixed evaluator view; the raw SAM row is retained as a common frozen-bank reference.}
 \label{tab:proposal_results}
 \end{table*}

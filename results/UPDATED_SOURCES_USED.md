@@ -1,24 +1,21 @@
 # Updated Sources Used
 
-This file is the final evidence map for the revised NeurIPS manuscript in `paper/`. It supersedes the earlier inventory note and reflects the final question-led framing of the paper: frozen SAM is studied through two complementary evidence routes, one over frozen features and one over generated proposal masks, with ControlNet bridge and CAID retained as appendix-side supporting routes.
+This file is the final evidence map for the revised NeurIPS manuscript in `paper/`. It supersedes the earlier inventory note and reflects the final question-led framing of the paper: feature-space exploration and proposal-/mask-space exploration are the two central evidence routes; the historical natural/synthetic anchor pair is broadened by an ADE20K-selected natural complement and a ControlNet bridge synthetic complement; CAID is retained separately as an appendix real-world overhead-imagery complement.
 
 ## Scope lock
 
 Main-paper routes:
 
-- RWTD
-- STLD
-- feature-space exploration
-- proposal-/mask-space exploration via a lightweight learned readout above the frozen mask bank
+- feature-space exploration over frozen multiscale SAM features
+- RWTD historical natural anchor
+- ADE20K-selected natural complement
+- STLD historical synthetic anchor
+- ControlNet bridge synthetic complement
+- proposal-/mask-space recoverability via the frozen-bank decision layer
 
-Appendix-only supporting routes:
+Appendix real-world complement:
 
-- ControlNet-stitched bridge benchmark
-- CAID breadth check
-
-Explicitly excluded:
-
-- DeTexture / Detector / ADE20K
+- CAID shoreline / overhead-imagery complement
 
 ## Method sources
 
@@ -48,9 +45,9 @@ Explicitly excluded:
 ## Main matched comparison sources
 
 - `rwtd_miner_github_repo/paper_repro/source_data/main_results/rwtd_architexture_full256_official.json`
-  - RWTD full-256 proposal-route headline row: `0.4611 / 0.6966`.
+  - RWTD full-256 frozen-bank readout row: `0.4611 / 0.6966`.
 - `rwtd_miner_github_repo/paper_repro/source_data/main_results/rwtd_architexture_common253_official.json`
-  - RWTD common-253 proposal-route headline row: `0.4645 / 0.7013`.
+  - RWTD common-253 frozen-bank readout row: `0.4645 / 0.7013`.
 - `rwtd_miner_github_repo/paper_repro/source_data/main_results/rwtd_texturesam_common253_official.json`
   - RWTD common-253 TextureSAM rerun row: `0.4684 / 0.6163`.
 - `rwtd_miner_github_repo/paper_repro/source_data/main_results/rwtd_sam2_original_official.json`
@@ -65,6 +62,16 @@ Explicitly excluded:
   - STLD bootstrap confidence intervals used in the results discussion.
 - `TextureSAM-v2/reports/final_round_rwtd_bootstrap_summary.json`
   - RWTD final-round paired bootstrap support. The retained paper uses the `rwtd_common253_overlap_instances` block because it matches the official overlap-significance semantics.
+- `rwtd_miner_github_repo/paper_repro/source_data/external_routes/detexture_ade20k/detexture_validation_partition_summary.json`
+  - ADE20K-selected matched validation summary for the learned frozen-bank readout: `0.5043 / 0.3762`.
+- `rwtd_miner_github_repo/paper_repro/source_data/external_routes/detexture_ade20k/detexture_validation_sam2_original_summary.json`
+  - ADE20K-selected raw SAM2.1-small baseline on the same validation slice.
+- `rwtd_miner_github_repo/paper_repro/source_data/external_routes/detexture_ade20k/detexture_validation_benchmark_summary.json`
+  - ADE20K-selected matched TextureSAM benchmark summary used for the strict public-gallery comparison.
+- `rwtd_miner_github_repo/paper_repro/source_data/main_results/controlnet_partition_summary.json`
+  - ControlNet bridge matched-summary row for the learned frozen-bank readout: `0.6803 / 0.6039`.
+- `rwtd_miner_github_repo/paper_repro/source_data/main_results/controlnet_sam2_original_summary.json`
+  - ControlNet bridge raw SAM2.1-small baseline on the same benchmark archive.
 
 ## Oracle and stronger-baseline sources
 
@@ -140,8 +147,8 @@ Explicitly excluded:
   - Reused as the main proposal-space pipeline figure.
 - `paper_main/figures/fig_ambiguity_commitment_full256.png`
   - Reused in the appendix RWTD failure-analysis section.
-- `paper_neurips_unified/figures/fig_recoverability_loci.tex`
-  - Revised conceptual figure with proposal-space visually dominant.
+- `paper/figures/fig_recoverability_loci.tex`
+  - Revised two-route overview figure with balanced feature-space and proposal-/mask-space framing.
 
 ## Traceability and review docs
 
@@ -160,5 +167,5 @@ Explicitly excluded:
   - Inspected for legacy wording and route naming only; not used as main evidence.
 - `TextureSAM-v2/paper_imports/20260312_user_final/ArchiTexture_main/paper_body.tex`
   - Inspected for old proposal-route claims and audit wording only; not used as a headline evidence source.
-- Any DeTexture / Detector / ADE20K artifacts
-  - Inspected only to confirm exclusion from the revised paper.
+- Legacy Detector artifacts and unmatched ADE20K / DeTexture analyses
+  - Inspected only to confirm that they stay out of the final matched-comparison story.

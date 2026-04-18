@@ -8,11 +8,13 @@
 Route & Frozen evidence & Readout type & Question addressed & Key takeaway \\
 \midrule
 Feature-space exploration & multiscale SAM \texttt{backbone\_fpn} features & clustering-only probe over pooled coarse features, flip-averaging, scale controls & RQ2 & Frozen features already exhibit nontrivial texture organization; coarse scale and positionality matter. \\
-Proposal-/mask-space exploration (RWTD) & generated proposal masks plus dense rescue candidates & compatibility reasoning, conservative component selection, selective rescue & RQ3 and part of RQ4 & Natural scenes often externalize texture as fragmented masks, so mask-level commitment matters. \\
-Proposal-/mask-space exploration (STLD) & generated proposal masks & compatibility reasoning and component selection & RQ3 and part of RQ4 & Canonical synthetic scenes often already contain a strong singleton mask. \\
-Supporting appendix routes & generated proposal masks on ControlNet bridge and CAID & same proposal-space readout family under route-specific protocols & scope / breadth checks & Useful for context, but not mixed into the main matched comparison blocks. \\
+Natural anchor proposal route (RWTD) & generated proposal masks plus dense rescue candidates & compatibility reasoning, conservative component selection, selective rescue & RQ3 and part of RQ4 & The classical natural benchmark remains the hardest fragmented-evidence setting. \\
+Natural complement proposal route (ADE20K-selected) & generated proposal masks on visually curated public crops & fixed PTD-trained Stage-A readout on exact paired masks & RQ3 & The same recoverability story persists on a broader public natural-image complement. \\
+Synthetic anchor proposal route (STLD) & generated proposal masks & compatibility reasoning and component selection & RQ3 and part of RQ4 & Canonical synthetic scenes often already contain a strong singleton mask. \\
+Synthetic complement proposal route (ControlNet bridge) & generated proposal masks on stitched bridge images & fixed PTD-trained Stage-A readout on exact synthetic transitions & RQ3 & More naturalistic synthetic seams keep the same frozen-bank recoverability pattern. \\
+Appendix real-world complement (CAID) & generated proposal masks on shoreline imagery & same Stage-A family under partition-invariant evaluation & scope / breadth check & Exact shoreline masks and large contiguous partitions make CAID useful as an appendix-only real-world contrast. \\
 \bottomrule
 \end{tabularx}
-\caption{Two-route map for the paper. The feature and proposal-/mask-space routes inspect different frozen signals and therefore answer different parts of the central question. The feature route reveals latent texture organization in the representation; the proposal-/mask-space route reveals how much of that organization is already present in the generated masks and recoverable under matched evaluation.}
+\caption{Two-route map for the paper. The feature and proposal-/mask-space routes inspect different frozen signals and therefore answer different parts of the central question. Within the proposal route, RWTD and STLD remain the historical natural/synthetic anchors, while the ADE20K-selected and ControlNet routes broaden those two sides without changing the recoverability question. CAID is retained separately as an appendix-only real-world contrast.}
 \label{tab:route_protocol}
 \end{table*}

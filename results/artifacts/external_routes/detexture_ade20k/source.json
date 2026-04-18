@@ -1,0 +1,26 @@
+{
+  "benchmark_name": "DeTexture ADE20K validation-only external diagnostic",
+  "dataset_clone_url": "https://github.com/aviadcohz/detexture_ADE20K.git",
+  "dataset_repo_commit": "c22d62ab7917a3e3acb5a45d8a4ecdf57e8aa108",
+  "selection_source": "gallery.json",
+  "selected_variant": "refined",
+  "selected_split": "validation",
+  "gallery_entries_total": 753,
+  "gallery_entries_training": 697,
+  "gallery_entries_validation": 56,
+  "primary_metric": "partition-invariant mIoU / ARI",
+  "ground_truth_protocol": "two-mask exclusive-valid pixels; overlap and void pixels are ignored",
+  "texturesam_common_subset_size": 54,
+  "texturesam_missing_validation_image_ids": [
+    11,
+    13
+  ],
+  "texturesam_missing_validation_crop_names": [
+    "validation_ADE_val_00000625_t0_crop2",
+    "validation_ADE_val_00000625_t1_crop1"
+  ],
+  "notes": [
+    "This route is documented as a post-paper extension and is intentionally kept separate from the original four-route paper table.",
+    "The validation-only restriction avoids reporting ADE20K training crops in a benchmark where the released TextureSAM checkpoint was trained on ADE20K."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "benchmark_root": "/home/galoren/TextureSAM-v2/experiments/detexture_ade20k_eval_20260317/benchmarks/detexture_validation_refined",
+  "gt_mode": "two_mask_exclusive_valid_pixels",
+  "methods": {
+    "ArchiTexture_small_pre_ring_hi_0p3": {
+      "coverage": 56,
+      "direct": {
+        "all": {
+          "ari": 0.36753242099773936,
+          "miou": 0.25436121307159576
+        },
+        "covered": {
+          "ari": 0.36753242099773936,
+          "miou": 0.25436121307159576
+        }
+      },
+      "invariant": {
+        "all": {
+          "ari": 0.36753242099773936,
+          "miou": 0.500760085576693
+        },
+        "covered": {
+          "ari": 0.36753242099773936,
+          "miou": 0.500760085576693
+        }
+      },
+      "mean_mask_count_on_present": 1.0,
+      "mode": "single_mask"
+    },
+    "TextureSAM_0p3": {
+      "coverage": 54,
+      "direct": {
+        "all": {
+          "ari": 0.3649416068875543,
+          "miou": 0.2899136421418592
+        },
+        "covered": {
+          "ari": 0.3784579626982044,
+          "miou": 0.3006511844434096
+        }
+      },
+      "invariant": {
+        "all": {
+          "ari": 0.3187452810696893,
+          "miou": 0.45465942810476523
+        },
+        "covered": {
+          "ari": 0.3305506618500481,
+          "miou": 0.47149866618271946
+        }
+      },
+      "mean_mask_count_on_present": 3.425925925925926,
+      "mode": "mask_bank"
+    }
+  },
+  "num_images": 56,
+  "overlap_fraction_mean": 3.7529243050551466e-05,
+  "valid_fraction_mean": 0.9967425737837894,
+  "void_fraction_mean": 0.0032198969731601903
+}

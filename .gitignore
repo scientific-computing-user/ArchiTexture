@@ -24,3 +24,7 @@ paper/*.fdb_latexmk
 # Local experiment outputs
 results/tmp/
 artifacts/
+!results/artifacts/
+!results/artifacts/external_routes/
+!results/artifacts/external_routes/detexture_ade20k/
+!results/artifacts/external_routes/detexture_ade20k/**

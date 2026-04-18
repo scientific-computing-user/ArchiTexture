@@ -1,0 +1,21 @@
+{
+  "dataset": "stld",
+  "selector": "learned_stageA_singleton",
+  "num_images": 200,
+  "common182_count": 182,
+  "ptd_encoder_ckpt": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_stld_parallel_20260312/results_full/models/ptd_encoder.pt",
+  "ptd_learned_bundle": "/home/galoren/ArchiTexture/TextureSAM-v2/experiments/khan_synthetic_gallery_20260312/models/ptd_learned_split.pkl",
+  "methods": [
+    {
+      "method": "learned_single_selector",
+      "all200_miou": 0.6548401330721053,
+      "all200_ari": 0.7035515787563696,
+      "common182_miou": 0.7196045418374786,
+      "common182_ari": 0.7731336030289776
+    }
+  ],
+  "artifacts": {
+    "masks_dir": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_round_learned_single_selector_stld/masks",
+    "per_image_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_round_learned_single_selector_stld/stld_learned_single_selector_per_image.csv"
+  }
+}

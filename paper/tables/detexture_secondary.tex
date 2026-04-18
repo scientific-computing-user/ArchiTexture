@@ -1,0 +1,17 @@
+\begin{table*}[t]
+\centering
+\scriptsize
+\begin{tabularx}{\textwidth}{@{}Xlcc@{}}
+\toprule
+Method & View / coverage & Direct mIoU / ARI & Invariant mIoU / ARI \\
+\midrule
+SAM2.1-small original rerun~\cite{ravi2024sam2} & validation full set, 56/56 & 0.1263 / 0.1379 & 0.1665 / 0.1015 \\
+TextureSAM public checkpoint rerun~\cite{texturesamrepo2026} & validation full set, 54/56 & 0.2899 / 0.3649 & 0.4547 / 0.3187 \\
+Proposal route Stage-A & validation full set, 56/56 & 0.2544 / 0.3675 & 0.5008 / 0.3675 \\
+TextureSAM public checkpoint rerun~\cite{texturesamrepo2026} & validation matched subset, 54/54 & 0.3007 / 0.3785 & 0.4715 / 0.3306 \\
+Proposal route Stage-A & validation matched subset, 54/54 & 0.2597 / 0.3762 & 0.5043 / 0.3762 \\
+\bottomrule
+\end{tabularx}
+\caption{ADE20K-selected textural crop complement. The benchmark comes from the public visually curated DeTexture ADE20K refined gallery; to avoid ADE20K training leakage in the public TextureSAM comparison, the paper uses the validation slice of that curated gallery. The main text emphasizes the invariant columns because the two texture sides are label-symmetric, while this appendix table preserves the direct view and the full-versus-matched coverage context.}
+\label{tab:detexture_secondary}
+\end{table*}

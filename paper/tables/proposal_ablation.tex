@@ -18,10 +18,10 @@ STLD common-182 & PTD heuristic & 0.3757 & 0.4085 \\
 STLD common-182 & Learned single selector & 0.7196 & 0.7731 \\
 STLD common-182 & Proposal route final & 0.7195 & 0.7791 \\
 \midrule
-ControlNet bridge all-1742 & Proposal union (supporting route) & 0.6749 & 0.1188 \\
-ControlNet bridge all-1742 & Proposal route Stage-A (supporting route) & 0.6803 & 0.6039 \\
+ControlNet bridge all-1742 & Proposal union (synthetic complement) & 0.6749 & 0.1188 \\
+ControlNet bridge all-1742 & Proposal route Stage-A (synthetic complement) & 0.6803 & 0.6039 \\
 \bottomrule
 \end{tabularx}
-\caption{Route-specific evidence for \textbf{RQ4} using each route's native evaluator. On RWTD, learned top-1 selection helps but remains well below the structured commitment stack, while the conservative core already captures most of the coherence gain and the final rescue layer adds the remaining improvement. On STLD, by contrast, learned top-1 selection is already very strong, which highlights the difference between canonical synthetic partitions and the more fragmented natural RWTD scenes.}
+\caption{Route-specific evidence for \textbf{RQ4} using each route's native evaluator. On RWTD, learned top-1 selection helps but remains well below the structured commitment stack, while the conservative core already captures most of the coherence gain and the final rescue layer adds the remaining improvement. On STLD, by contrast, learned top-1 selection is already very strong, which highlights the difference between canonical synthetic partitions and the more fragmented natural RWTD scenes. The ControlNet bridge rows show that a simple proposal union remains inadequate even on the broader synthetic complement.}
 \label{tab:proposal_ablation}
 \end{table*}

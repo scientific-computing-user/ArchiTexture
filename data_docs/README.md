@@ -1,10 +1,13 @@
 # Dataset Notes
 
-The final paper uses four dataset routes with different roles:
+The final paper uses five benchmark routes with distinct roles:
 
-- `RWTD`: main natural benchmark; official matched comparison and oracle analysis
-- `STLD`: main synthetic benchmark; highlights the contrast between singleton selection and fragment commitment
-- `ControlNet bridge`: appendix-only supporting route
-- `CAID`: appendix-only breadth check
+| Role | Route | Readout emphasis |
+| --- | --- | --- |
+| historical natural anchor | `RWTD` | official invariant comparison plus oracle / selector analysis |
+| natural complement | `ADE20K-selected` | visually selected public textural crops; invariant matched validation comparison |
+| historical synthetic anchor | `STLD` | direct-foreground comparison; singleton-selection versus commitment contrast |
+| synthetic complement | `ControlNet bridge` | invariant comparison on more naturalistic stitched transitions |
+| appendix real-world complement | `CAID` | invariant shoreline / overhead-imagery breadth check |
 
-This public repo does not redistribute the underlying benchmark image data. The retained result summaries and the paper tables describe the exact subsets and evaluator conventions used in the manuscript.
+This public repo does not redistribute the underlying benchmark image data. The retained result summaries, paper tables, and figure manifests document the exact subsets and evaluator conventions used in the manuscript.

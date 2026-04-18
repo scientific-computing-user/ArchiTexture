@@ -1,0 +1,30 @@
+{
+  "dataset": "rwtd",
+  "selector": "learned_stageA_singleton",
+  "num_images": 256,
+  "common253_count": 253,
+  "ptd_encoder_ckpt": "/home/galoren/ArchiTexture/TextureSAM-v2/artifacts/ptd_encoder_swinb_pre_ring.pt",
+  "ptd_learned_bundle": "/home/galoren/ArchiTexture/TextureSAM-v2/artifacts/ptd_learned_swinb_pre_ring.pkl",
+  "methods": [
+    {
+      "method": "learned_single_selector",
+      "full256_miou": 0.4477576694095814,
+      "full256_ari": 0.5549114079418702,
+      "full256_num_pred_image_ids": 256,
+      "common253_miou": 0.4511737725776349,
+      "common253_ari": 0.5600874958537893,
+      "common253_num_pred_image_ids": 253,
+      "internal_full256_miou": 0.6993074996318185,
+      "internal_full256_ari": 0.5408569329389273,
+      "internal_common253_miou": 0.7026852354691977,
+      "internal_common253_ari": 0.5447718187627182
+    }
+  ],
+  "artifacts": {
+    "official_eval_full256_json": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_round_learned_single_selector_rwtd/official_eval_full256.json",
+    "official_eval_common253_json": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_round_learned_single_selector_rwtd/official_eval_common253.json",
+    "full_export_dir": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_round_learned_single_selector_rwtd/official_export",
+    "common253_export_dir": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_round_learned_single_selector_rwtd/official_export_common253",
+    "per_image_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/final_round_learned_single_selector_rwtd/rwtd_learned_single_selector_per_image.csv"
+  }
+}

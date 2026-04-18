@@ -1,0 +1,76 @@
+{
+  "num_images": 256,
+  "rwtd_root": "TextureSAM-v2/data/rwtd_kaust256_clean",
+  "prompt_masks_root": "TextureSAM-v2/reports/strict_ptd_v11_multibank/overnight_multibank_promptstyle_fixed",
+  "v9_masks_root": "TextureSAM-v2/reports/margin_guard_sweep_swin256/margin_0p0/masks",
+  "final_masks_root": "TextureSAM-v2/reports/release_swinb_full256_audit/texturesam2_acute_learned_rescue/masks",
+  "audit_cases_root": "TextureSAM-v2/reports/release_swinb_full256_audit/texturesam2_acute_learned_rescue/diagnostics/audit_cases",
+  "baseline_official_root": "TextureSAM-v2/reports/repro_upstream_eval/official_0p3_masks",
+  "summary_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/reviewer_oracles_rwtd_full256/rwtd_proposal_oracles_summary.csv",
+  "per_image_csv": "/home/galoren/ArchiTexture/TextureSAM-v2/reports/reviewer_oracles_rwtd_full256/rwtd_proposal_oracles_per_image.csv",
+  "methods": [
+    {
+      "method": "final_release",
+      "full256_miou": 0.46110414433944885,
+      "full256_ari": 0.6965752621397988,
+      "full256_num_pred_image_ids": 256,
+      "common253_miou": 0.46446892972081827,
+      "common253_ari": 0.7013057021572455,
+      "common253_num_pred_image_ids": 253
+    },
+    {
+      "method": "core_v9",
+      "full256_miou": 0.45426016312202716,
+      "full256_ari": 0.6786438598939043,
+      "full256_num_pred_image_ids": 256,
+      "common253_miou": 0.4557919994314633,
+      "common253_ari": 0.6812081078590664,
+      "common253_num_pred_image_ids": 253
+    },
+    {
+      "method": "single_proposal_oracle",
+      "full256_miou": 0.5134262478794396,
+      "full256_ari": 0.8123992417309638,
+      "full256_num_pred_image_ids": 256,
+      "common253_miou": 0.514209938816253,
+      "common253_ari": 0.8146189270673125,
+      "common253_num_pred_image_ids": 253
+    },
+    {
+      "method": "compatible_component_oracle",
+      "full256_miou": 0.47385084904743185,
+      "full256_ari": 0.25106572780236197,
+      "full256_num_pred_image_ids": 256,
+      "common253_miou": 0.4747939069723877,
+      "common253_ari": 0.24969305515321025,
+      "common253_num_pred_image_ids": 253
+    },
+    {
+      "method": "topk_union_oracle",
+      "full256_miou": 0.49405365099814025,
+      "full256_ari": 0.7079701188853323,
+      "full256_num_pred_image_ids": 256,
+      "common253_miou": 0.4963966311680046,
+      "common253_ari": 0.7107342841452078,
+      "common253_num_pred_image_ids": 253
+    },
+    {
+      "method": "rescue_candidate_oracle",
+      "full256_miou": 0.507607079283865,
+      "full256_ari": 0.7331994426910619,
+      "full256_num_pred_image_ids": 256,
+      "common253_miou": 0.5093060510838788,
+      "common253_ari": 0.7352345140394765,
+      "common253_num_pred_image_ids": 253
+    },
+    {
+      "method": "bank_upper_bound_oracle",
+      "full256_miou": 0.5177556492989676,
+      "full256_ari": 0.8566286642693054,
+      "full256_num_pred_image_ids": 256,
+      "common253_miou": 0.518338016153186,
+      "common253_ari": 0.8579737278146125,
+      "common253_num_pred_image_ids": 253
+    }
+  ]
+}

@@ -103,6 +103,7 @@ STLD_PROMPTS = TEXTURESAM_ROOT / "experiments" / "khan_synthetic_gallery_2026031
 
 CONTROLNET_FIG = WORKSPACE_ROOT / "TextureSAM-v2" / "TextureSum2_paper" / "figures" / "fig_controlnet_bridge_examples.png"
 CAID_FIG = WORKSPACE_ROOT / "TextureSAM-v2" / "TextureSum2_paper" / "figures" / "fig_caid_audit.png"
+DETEXTURE_FIG = WORKSPACE_ROOT / "TextureSAM-v2" / "TextureSum2_paper" / "figures" / "fig_detexture_audit.png"
 
 
 def _load_font(size: int) -> ImageFont.ImageFont:
@@ -455,14 +456,17 @@ def build_stld_case_gallery() -> Path:
     return out
 
 
-def copy_supporting_route_figures() -> tuple[Path, Path]:
+def copy_supporting_route_figures() -> tuple[Path, Path, Path]:
+    out_detexture = OUT_DIR / "fig_detexture_audit.png"
     out_control = OUT_DIR / "fig_controlnet_bridge_examples.png"
     out_caid = OUT_DIR / "fig_caid_audit.png"
+    if DETEXTURE_FIG.exists():
+        shutil.copyfile(DETEXTURE_FIG, out_detexture)
     if CONTROLNET_FIG.exists():
         shutil.copyfile(CONTROLNET_FIG, out_control)
     if CAID_FIG.exists():
         shutil.copyfile(CAID_FIG, out_caid)
-    return out_control, out_caid
+    return out_detexture, out_control, out_caid
 
 
 def main() -> None:

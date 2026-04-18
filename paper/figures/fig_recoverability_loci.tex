@@ -16,7 +16,7 @@
 \textbf{Proposal-/Mask-Space Exploration} \\
 \textbf{Frozen evidence:} generated SAM-style proposal masks. \\
 \textbf{Question:} What texture structure is already present in the generated masks? \\
-\textbf{Readout:} proposal descriptors, compatibility reasoning, conservative component selection, optional RWTD rescue.
+\textbf{Readout:} proposal descriptors, compatibility reasoning, conservative component selection, optional route-specific rescue on the historical natural anchor.
 \end{minipage}}
 \end{tabularx}
 \vspace{4pt}
@@ -25,6 +25,6 @@
 \begin{minipage}[t]{0.965\textwidth}
 \textbf{Joint question:} Together, these routes test whether texture understanding is present in frozen SAM and how it can be revealed without retraining the backbone or proposal generator.
 \end{minipage}}
-\caption{Figure overview of the paper's two-route structure. Feature-space exploration inspects the frozen representation directly; proposal-/mask-space exploration inspects the generated mask bank. The routes are intentionally parallel: one asks what texture structure remains latent in frozen features, and the other asks what texture structure has already been externalized into generated masks.}
+\caption{Figure overview of the paper's two-route structure. Feature-space exploration inspects the frozen representation directly; proposal-/mask-space exploration inspects the generated mask bank. The routes are intentionally parallel: one asks what texture structure remains latent in frozen features, and the other asks what texture structure has already been externalized into generated masks across the historical benchmark anchors and their broader complements.}
 \label{fig:recoverability_loci}
 \end{figure*}

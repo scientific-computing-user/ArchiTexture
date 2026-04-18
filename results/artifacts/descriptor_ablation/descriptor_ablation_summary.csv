@@ -1,0 +1,13 @@
+dataset,subset,route,descriptor_mode,miou,ari,bundle_status
+RWTD,common-253,stageA,handcrafted,0.4468929572150741,0.655577135556413,cached
+RWTD,full-256,stageA,handcrafted,0.44544875652648824,0.6533140365269803,cached
+RWTD,common-253,stageA,ptd_convnext,0.44862863942179493,0.6505462961874879,trained
+RWTD,full-256,stageA,ptd_convnext,0.44717342379143704,0.648376397709911,trained
+RWTD,common-253,stageA,hybrid_ptd,0.4557919994314633,0.6812081078590664,reused
+RWTD,full-256,stageA,hybrid_ptd,0.45426016312202716,0.6786438598939043,reused
+STLD,common-182,stageA,handcrafted,0.7045490651033104,0.7808497317663482,cached
+STLD,all-200,stageA,handcrafted,0.6569570322847786,0.7265315319118867,cached
+STLD,common-182,stageA,ptd_convnext,0.6697727834114622,0.7740124707779314,trained
+STLD,all-200,stageA,ptd_convnext,0.625310615945197,0.7203096244124274,trained
+STLD,common-182,stageA,hybrid_ptd,0.7194616806936366,0.7791096027513711,reused
+STLD,all-200,stageA,hybrid_ptd,0.6705275124719756,0.7249480145082576,reused

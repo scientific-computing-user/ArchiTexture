@@ -1,0 +1,31 @@
+{
+  "benchmark_root": "/home/galoren/TextureSAM-v2/experiments/caid_eval_20260313/benchmarks/caid_test",
+  "methods": {
+    "SAM2_original": {
+      "coverage": 3104,
+      "direct": {
+        "all": {
+          "ari": 0.4057606981480135,
+          "miou": 0.3307718319125549
+        },
+        "covered": {
+          "ari": 0.4057606981480135,
+          "miou": 0.3307718319125549
+        }
+      },
+      "invariant": {
+        "all": {
+          "ari": 0.20396723609579445,
+          "miou": 0.2587795631712037
+        },
+        "covered": {
+          "ari": 0.20396723609579445,
+          "miou": 0.2587795631712037
+        }
+      },
+      "mean_mask_count_on_present": 17.254832474226806,
+      "mode": "mask_bank"
+    }
+  },
+  "num_images": 3104
+}
